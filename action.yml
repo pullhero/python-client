@@ -1,0 +1,64 @@
+name: 'PullHero'
+description: 'A Python-based Review assistant'
+author: 'Carlos Camacho'
+branding:
+  icon: message-square
+  color: blue
+inputs:
+  api-key:
+    description: 'API key for DeepSeek/OpenAI'
+    required: true
+  provider:
+    description: 'AI provider (deepseek/openai)'
+    default: 'openai'
+    required: false
+  model:
+    description: 'Model name'
+    default: 'gpt-4-turbo'
+    required: false
+  digest-length:
+    description: 'Max digest length'
+    default: '4096'
+    required: false
+  github-token:
+    description: 'GitHub token'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install GitIngest
+      run: |
+        git clone https://github.com/cyclotruc/gitingest.git
+        cd gitingest
+        pip install -r requirements.txt
+      shell: bash
+
+    #- name: Generate digest
+    #  run: |
+    #    python3 gitingest/gitingest.py --length ${{ inputs.digest-length }} > digest.txt
+    #  shell: bash
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+      shell: bash
+
+    - name: Run review
+      shell: bash
+      env:
+        INPUT_API_KEY: ${{ inputs.api-key }}
+        INPUT_PROVIDER: ${{ inputs.provider }}
+        INPUT_MODEL: ${{ inputs.model }}
+        INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
+      run: |
+        python pullhero.py

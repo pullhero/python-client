@@ -1,0 +1,93 @@
+name: Pull Hero Code Review
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    if: |
+      github.event.issue.pull_request != null &&
+      startsWith(github.event.comment.body, '/review')
+    steps:
+      - name: Checkout Base Repository (Safe for Forks)
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+
+      - name: Debug Comment Data
+        run: |
+          echo "Comment body: '${{ github.event.comment.body }}'"
+          echo "Comment user: '${{ github.event.comment.user.login }}'"
+          echo "Is this a pull request comment? ${{ github.event.issue.pull_request }}"
+
+      - name: Get Repository Collaborators
+        id: check_user
+        run: |
+          COMMENT_USER="${{ github.event.comment.user.login }}"
+          REPO="${{ github.repository }}"
+          ORG="${REPO%%/*}"  # Extract organization/user name
+
+          echo "Checking permissions for user: $COMMENT_USER in repo: $REPO"
+
+          # Check if user is a repository collaborator
+          COLLABORATOR_PERMS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/$REPO/collaborators/$COMMENT_USER/permission")
+
+          PERMISSION=$(echo "$COLLABORATOR_PERMS" | jq -r '.permission')
+
+          if [[ "$PERMISSION" == "admin" || "$PERMISSION" == "write" ]]; then
+            echo "User has write/admin access as a collaborator."
+            echo "AUTHORIZED=true" >> $GITHUB_ENV
+            exit 0
+          fi
+
+          # Check if repository is in an organization
+          ORG_PERMS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/orgs/$ORG/memberships/$COMMENT_USER")
+
+          ORG_STATE=$(echo "$ORG_PERMS" | jq -r '.state')
+
+          if [[ "$ORG_STATE" == "active" ]]; then
+            echo "User is an active organization member."
+            echo "AUTHORIZED=true" >> $GITHUB_ENV
+            exit 0
+          fi
+
+          echo "User is not authorized (not an admin, maintainer, or org member)."
+          echo "AUTHORIZED=false" >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Exit if Unauthorized
+        if: env.AUTHORIZED != 'true'
+        run: |
+          echo "User is not authorized to trigger the review."
+          exit 1
+
+      - name: Debug Secrets (Ensure OPENAI_API_KEY is Passed)
+        run: |
+          if [[ -z "$OPENAI_API_KEY" ]]; then
+            echo "OPENAI_API_KEY is empty!"
+          else
+            echo "OPENAI_API_KEY is set. Length: ${#OPENAI_API_KEY}"
+          fi
+          if [[ -z "$GITHUB_TOKEN" ]]; then
+            echo "GITHUB_TOKEN is empty!"
+          else
+            echo "GITHUB_TOKEN is set. Length: ${#GITHUB_TOKEN}"
+          fi
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run pullhero
+        uses: ./
+        with:
+          api-key: "${{ secrets.OPENAI_API_KEY }}"
+          github-token: "${{ secrets.GITHUB_TOKEN }}"

@@ -1,3 +1,22 @@
+# GNU GENERAL PUBLIC LICENSE
+# Version 3, 29 June 2007
+#
+# Copyright (C) 2025 Carlos Camacho and authors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+---
 name: Pull Hero Code Review
 on:
   issue_comment:
@@ -13,18 +32,18 @@ jobs:
       github.event.issue.pull_request != null &&
       startsWith(github.event.comment.body, '/review')
     steps:
-      - name: Checkout Base Repository (Safe for Forks)
+      - name: Checkout Original Repository
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-          ref: ${{ github.event.pull_request.head.ref }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.issue.pull_request.head.ref }}
+          repository: ${{ github.repository }}
 
       - name: Debug Comment Data
         run: |
           echo "Comment body: '${{ github.event.comment.body }}'"
           echo "Comment user: '${{ github.event.comment.user.login }}'"
-          echo "Is this a pull request comment? ${{ github.event.issue.pull_request }}"
+          echo "PR number: ${{ github.event.issue.number }}"
 
       - name: Get Repository Collaborators
         id: check_user
@@ -72,15 +91,24 @@ jobs:
 
       - name: Debug Secrets (Ensure OPENAI_API_KEY is Passed)
         run: |
-          if [[ -z "$OPENAI_API_KEY" ]]; then
-            echo "OPENAI_API_KEY is empty!"
+          echo "🔍 Debugging Secrets..."
+          
+          if [[ -z "${{ secrets.OPENAI_API_KEY }}" ]]; then
+            echo "❌ ERROR: OPENAI_API_KEY is missing in GitHub Secrets!"
           else
-            echo "OPENAI_API_KEY is set. Length: ${#OPENAI_API_KEY}"
+            echo "✅ OPENAI_API_KEY is set in GitHub Secrets."
           fi
-          if [[ -z "$GITHUB_TOKEN" ]]; then
-            echo "GITHUB_TOKEN is empty!"
+
+          if [[ -z "$OPENAI_API_KEY" ]]; then
+            echo "❌ ERROR: OPENAI_API_KEY is NOT set in environment!"
           else
-            echo "GITHUB_TOKEN is set. Length: ${#GITHUB_TOKEN}"
+            echo "✅ OPENAI_API_KEY is set. Length: ${#OPENAI_API_KEY}"
+          fi
+
+          if [[ -z "${{ secrets.GITHUB_TOKEN }}" ]]; then
+            echo "❌ ERROR: GITHUB_TOKEN is missing!"
+          else
+            echo "✅ GITHUB_TOKEN is set. Length: ${#GITHUB_TOKEN}"
           fi
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

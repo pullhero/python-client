@@ -1,24 +1,17 @@
 # PullHero 🤖⚡
 
-[![GitHub Release](https://img.shields.io/github/v/release/ccamacho/pullhero?include_prereleases&style=flat-square)](https://github.com/ccamacho/pullhero/releases)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-PullHero-blue.svg?logo=github&style=flat-square)](https://github.com/marketplace/actions/pullhero-ai-code-review)
+[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-PullHero-blue.svg?logo=github&style=flat-square)](https://github.com/marketplace/actions/pullhero)
 
-**AI-Powered Code Guardian**  
-Automated code reviews with intelligent feedback and approval recommendations using state-of-the-art language models.
-
-
-
-
-![PullHero in Action](https://user-images.githubusercontent.com/3284836/268842123-abc4d3e4-5b9a-4d8e-9f1a-2e3a7c8d3b7a.png)  
-*(Example comment from PullHero in a PR)*
+**AI-Powered Code Reviews**  
+Automated code reviews with intelligent feedback and approval
+recommendations using state-of-the-art language models.
 
 ## Features ✨
 
 - 🧠 **Smart Code Analysis** - Deep context-aware reviews using DeepSeek or OpenAI
 - 📚 **Repository Understanding** - Code digest generation via [GitIngest](https://github.com/cyclotruc/gitingest)
 - ✅ **Clear Voting System** - +1 (Approve) or -1 (Request Changes) recommendations
-- 🔌 **Multi-LLM Support** - Compatible with DeepSeek and OpenAI APIs
+- 🔌 **Multi-LLM Support** - Compatible with DeepSeek and OpenAI APIs (v1/chat/completions)
 - 📝 **Detailed Feedback** - Actionable suggestions in PR comments
 - 🔒 **Secure Configuration** - Encrypted secret handling through GitHub
 - ⚡ **Fast Execution** - Optimized Python implementation
@@ -37,8 +30,8 @@ jobs:
   review:
     runs-on: ubuntu-latest
     steps:
-      - name: Analyze with PullHero
-        uses: ccamacho/pullhero@v1
+      - name: Run code reviews
+        uses: ccamacho/pullhero@v1.0.0
         with:
           api-key: ${{ secrets.LLM_API_KEY }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -72,7 +65,7 @@ To securely configure PullHero, follow these steps:
 ### Full Configuration Example
 
 ```yaml
-uses: ccamacho/pullhero@v1
+uses: ccamacho/pullhero@v1.0.0
 with:
   api-key: ${{ secrets.DEEPSEEK_KEY }}
   github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -160,30 +153,4 @@ git tag -a v1.2.3 -m "Release notes"
 git push origin --tags
 ```
 
-## FAQ ❓
-
-- **Q: How much does it cost?**  
-  **A:** Costs depend on the LLM provider. Typical cost is 0.10–0.50 per PR.
-
-- **Q: Can I use GPT-3.5?**
-
-  ```yaml
-  with:
-    model: gpt-3.5-turbo
-  ```
-
-- **Q: Privacy of code?**  
-  **A:** Code digest stays within GitHub infrastructure. API calls contain only diffs and digest.
-
-## License & Credits 📛
-
-**License:** Apache 2 (Full text in `LICENSE`)
-
-**Credits:**
-
-- Built with [GitIngest](https://github.com/cyclotruc/gitingest)
-- Inspired by Docling
-- LLM integrations via OpenAI/DeepSeek APIs
-
-🎡 **Maintained by [ccamacho](https://github.com/ccamacho)**  
-💬 Create an Issue for support
+**Maintained by [ccamacho](https://github.com/ccamacho)**

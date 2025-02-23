@@ -23,7 +23,7 @@ import argparse
 import requests
 import sys
 from github import Github
-from gitingest import GitIngester
+from gitingest import ingest
 
 def setup_logging():
     logging.basicConfig(
@@ -93,8 +93,8 @@ def main():
     
     diff = get_pr_diff(args.github_token, owner, repo, pr_number)
     
-    ingester = GitIngester(repo_path=f"https://github.com/{owner}/{repo}.git")
-    context = ingester.get_repo_context()
+    summary, tree, content = ingest(f"https://github.com/{owner}/{repo}.git")
+    context = summary
     
     prompt = f"""Code Review Task:
 Context:

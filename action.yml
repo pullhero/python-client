@@ -55,10 +55,8 @@ runs:
       with:
         python-version: '3.10'
 
-    - name: Install GitIngest
+    - name: Install requirements
       run: |
-        git clone https://github.com/cyclotruc/gitingest.git
-        cd gitingest
         pip install -r requirements.txt
       shell: bash
 

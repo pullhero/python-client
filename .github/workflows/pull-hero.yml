@@ -18,6 +18,7 @@
 
 ---
 name: Pull Hero Code Review
+
 on:
   issue_comment:
     types: [created]
@@ -28,11 +29,13 @@ jobs:
     permissions:
       pull-requests: write
       contents: read
+
     if: |
       github.event.issue.pull_request != null &&
       startsWith(github.event.comment.body, '/review')
+
     steps:
-      - name: Checkout Original Repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -41,11 +44,12 @@ jobs:
 
       - name: Debug Comment Data
         run: |
-          echo "Comment body: '${{ github.event.comment.body }}'"
-          echo "Comment user: '${{ github.event.comment.user.login }}'"
-          echo "PR number: ${{ github.event.issue.number }}"
+          echo "Comment Details:"
+          echo " - Comment Body: '${{ github.event.comment.body }}'"
+          echo " - Comment Author: '${{ github.event.comment.user.login }}'"
+          echo " - PR Number: ${{ github.event.issue.number }}"
 
-      - name: Get Repository Collaborators
+      - name: Verify User Authorization
         id: check_user
         run: |
           COMMENT_USER="${{ github.event.comment.user.login }}"
@@ -66,7 +70,7 @@ jobs:
             exit 0
           fi
 
-          # Check if repository is in an organization
+          # Check if user is an organization member
           ORG_PERMS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             "https://api.github.com/orgs/$ORG/memberships/$COMMENT_USER")
 
@@ -78,7 +82,7 @@ jobs:
             exit 0
           fi
 
-          echo "User is not authorized (not an admin, maintainer, or org member)."
+          echo "User is NOT authorized to trigger the review."
           echo "AUTHORIZED=false" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -86,35 +90,29 @@ jobs:
       - name: Exit if Unauthorized
         if: env.AUTHORIZED != 'true'
         run: |
-          echo "User is not authorized to trigger the review."
+          echo "ERROR: User is not authorized to trigger the review."
           exit 1
 
-      - name: Debug Secrets (Ensure OPENAI_API_KEY is Passed)
+      - name: Debug Secret Variables
         run: |
-          echo "🔍 Debugging Secrets..."
-          
-          if [[ -z "${{ secrets.OPENAI_API_KEY }}" ]]; then
-            echo "❌ ERROR: OPENAI_API_KEY is missing in GitHub Secrets!"
-          else
-            echo "✅ OPENAI_API_KEY is set in GitHub Secrets."
-          fi
+          echo "Verifying Secret Variables..."
 
-          if [[ -z "$OPENAI_API_KEY" ]]; then
-            echo "❌ ERROR: OPENAI_API_KEY is NOT set in environment!"
+          if [[ -z "${{ secrets.OPENAI_API_KEY }}" ]]; then
+            echo "ERROR: OPENAI_API_KEY is missing!"
           else
-            echo "✅ OPENAI_API_KEY is set. Length: ${#OPENAI_API_KEY}"
+            echo "OPENAI_API_KEY is set. (Length: ${#OPENAI_API_KEY})"
           fi
 
           if [[ -z "${{ secrets.GITHUB_TOKEN }}" ]]; then
-            echo "❌ ERROR: GITHUB_TOKEN is missing!"
+            echo "ERROR: GITHUB_TOKEN is missing!"
           else
-            echo "✅ GITHUB_TOKEN is set. Length: ${#GITHUB_TOKEN}"
+            echo "GITHUB_TOKEN is set. (Length: ${#GITHUB_TOKEN})"
           fi
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run pullhero
+      - name: Run PullHero
         uses: ./
         with:
           api-key: "${{ secrets.OPENAI_API_KEY }}"

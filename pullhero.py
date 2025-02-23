@@ -23,7 +23,7 @@ import argparse
 import requests
 import sys
 from github import Github
-from gitingest import ingest
+from gitingest import GitIngester
 
 def setup_logging():
     logging.basicConfig(
@@ -67,11 +67,11 @@ def call_ai_api(provider, api_key, model, prompt):
 def main():
     setup_logging()
     parser = argparse.ArgumentParser(description='Automated PR Review Bot')
-    parser.add_argument('--api-key', required=True, help='AI API Key')
-    parser.add_argument('--provider', default='openai', help='LLM Provider')
-    parser.add_argument('--model', default='gpt-4-turbo', help='LLM Model')
-    parser.add_argument('--github-token', required=True, help='GitHub Token')
-    parser.add_argument('--event-path', required=True, help='GitHub Event JSON Path')
+    parser.add_argument('--api-key', default=os.environ.get('INPUT_API_KEY'), required=not os.environ.get('INPUT_API_KEY'), help='AI API Key')
+    parser.add_argument('--provider', default=os.environ.get('INPUT_PROVIDER', 'openai'), help='LLM Provider')
+    parser.add_argument('--model', default=os.environ.get('INPUT_MODEL', 'gpt-4-turbo'), help='LLM Model')
+    parser.add_argument('--github-token', default=os.environ.get('INPUT_GITHUB_TOKEN'), required=not os.environ.get('INPUT_GITHUB_TOKEN'), help='GitHub Token')
+    parser.add_argument('--event-path', default=os.environ.get('GITHUB_EVENT_PATH'), required=not os.environ.get('GITHUB_EVENT_PATH'), help='GitHub Event JSON Path')
     
     args = parser.parse_args()
     
@@ -93,9 +93,9 @@ def main():
     
     diff = get_pr_diff(args.github_token, owner, repo, pr_number)
     
-    summary, tree, content = ingest(f"https://github.com/{owner}/{repo}.git")
-
-    context = summary
+    ingester = GitIngester(repo_path=f"https://github.com/{owner}/{repo}.git")
+    context = ingester.get_repo_context()
+    
     prompt = f"""Code Review Task:
 Context:
 {context}
@@ -119,9 +119,10 @@ Instructions:
     g = Github(args.github_token)
     repo = g.get_repo(f"{owner}/{repo}")
     pr = repo.get_pull(pr_number)
+
     sourcerepo = "**[PullHero](https://github.com/ccamacho/pullhero)**"
-    pr.create_issue_comment(f"### PullHero Review\n\n{review_text}\n\n**Vote**: {vote}\n\n{sourcerepo}")
-    
+    pr.create_issue_comment(f"### PullHero Review\n\n{review_text}\n\n**Vote**: {vote}\n\n{sourcerepo}") 
+
     logging.info(f"Review completed with vote: {vote}")
 
 if __name__ == "__main__":

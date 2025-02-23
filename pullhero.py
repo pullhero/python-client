@@ -1,3 +1,21 @@
+# GNU GENERAL PUBLIC LICENSE
+# Version 3, 29 June 2007
+#
+# Copyright (C) 2025 Carlos Camacho and authors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 import os
 import json
 import logging
@@ -5,7 +23,7 @@ import argparse
 import requests
 import sys
 from github import Github
-from gitingest import GitIngester
+from gitingest import ingest
 
 def setup_logging():
     logging.basicConfig(
@@ -75,9 +93,9 @@ def main():
     
     diff = get_pr_diff(args.github_token, owner, repo, pr_number)
     
-    ingester = GitIngester(repo_path=f"https://github.com/{owner}/{repo}.git")
-    context = ingester.get_repo_context()
-    
+    summary, tree, content = ingest(f"https://github.com/{owner}/{repo}.git")
+
+    context = summary
     prompt = f"""Code Review Task:
 Context:
 {context}

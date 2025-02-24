@@ -27,6 +27,12 @@ inputs:
   api-key:
     description: 'API key for DeepSeek/OpenAI'
     required: true
+  github-token:
+    description: 'GitHub token'
+    required: true
+  event-path:
+    description: 'Event path'
+    required: true
   provider:
     description: 'AI provider (deepseek/openai)'
     default: 'openai'
@@ -39,28 +45,10 @@ inputs:
     description: 'Max digest length'
     default: '4096'
     required: false
-  github-token:
-    description: 'GitHub token'
-    required: true
 runs:
-  using: "composite"
-  steps:
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-
-    - name: Install requirements
-      run: |
-        pip install -r requirements.txt
-      shell: bash
-
-    - name: Run review
-      shell: bash
-      env:
-        INPUT_API_KEY: ${{ inputs.api-key }}
-        INPUT_PROVIDER: ${{ inputs.provider }}
-        INPUT_MODEL: ${{ inputs.model }}
-        INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
-      run: |
-        python pullhero.py
+  using: "docker"
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.api-key }}
+    - ${{ inputs.github-token }}
+    - ${{ inputs.event-path }}

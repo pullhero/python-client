@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-# Use an official lightweight Python image
-FROM python:3.10-slim
+# Use an official Python image
+FROM python:3.10
 
 # Copy the action files into the container
 COPY . .

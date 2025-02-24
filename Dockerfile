@@ -19,11 +19,13 @@
 # Use an official Python image
 FROM python:3.10
 
-# Copy the action files into the container
-COPY . .
-
 # Install dependencies
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Run the script when the container starts
-ENTRYPOINT ["./entrypoint.sh"]
+COPY pullhero.py /usr/bin/pullhero.py
+RUN chmod +x /usr/bin/pullhero.py
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]

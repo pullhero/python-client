@@ -117,4 +117,3 @@ jobs:
         with:
           api-key: "${{ secrets.OPENAI_API_KEY }}"
           github-token: "${{ secrets.GITHUB_TOKEN }}"
-          # event-path: "${{ github.event_path }}"

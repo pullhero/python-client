@@ -30,9 +30,6 @@ inputs:
   github-token:
     description: 'GitHub token'
     required: true
-  #event-path:
-  #  description: 'Event path'
-  #  required: true
   provider:
     description: 'AI provider (deepseek/openai)'
     default: 'openai'
@@ -51,4 +48,3 @@ runs:
   args:
     - ${{ inputs.api-key }}
     - ${{ inputs.github-token }}
-    # - ${{ inputs.event-path }}

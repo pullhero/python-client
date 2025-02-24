@@ -27,9 +27,9 @@ inputs:
   api-key:
     description: 'API key for DeepSeek/OpenAI'
     required: true
-  #github-token:
-  #  description: 'GitHub token'
-  #  required: true
+  github-token:
+    description: 'GitHub token'
+    required: true
   #event-path:
   #  description: 'Event path'
   #  required: true
@@ -50,5 +50,5 @@ runs:
   image: 'Dockerfile'
   args:
     - ${{ inputs.api-key }}
-    # - ${{ inputs.github-token }}
+    - ${{ inputs.github-token }}
     # - ${{ inputs.event-path }}

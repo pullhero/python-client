@@ -67,10 +67,10 @@ def call_ai_api(provider, api_key, model, prompt):
 def main():
     setup_logging()
     parser = argparse.ArgumentParser(description='Automated PR Review Bot')
-    parser.add_argument('--api-key', default=os.environ.get('INPUT_API_KEY'), required=not os.environ.get('INPUT_API_KEY'), help='AI API Key')
-    parser.add_argument('--provider', default=os.environ.get('INPUT_PROVIDER', 'openai'), help='LLM Provider')
-    parser.add_argument('--model', default=os.environ.get('INPUT_MODEL', 'gpt-4-turbo'), help='LLM Model')
-    parser.add_argument('--github-token', default=os.environ.get('INPUT_GITHUB_TOKEN'), required=not os.environ.get('INPUT_GITHUB_TOKEN'), help='GitHub Token')
+    parser.add_argument('--api-key', default=os.environ.get('LLM_API_KEY'), required=not os.environ.get('LLM_API_KEY'), help='AI API Key')
+    parser.add_argument('--provider', default=os.environ.get('LLM_PROVIDER', 'openai'), help='LLM Provider')
+    parser.add_argument('--model', default=os.environ.get('LLM_PROVIDER', 'gpt-4-turbo'), help='LLM Model')
+    parser.add_argument('--github-token', default=os.environ.get('GITHUB_TOKEN'), required=not os.environ.get('GITHUB_TOKEN'), help='GitHub Token')
     parser.add_argument('--event-path', default=os.environ.get('GITHUB_EVENT_PATH'), required=not os.environ.get('GITHUB_EVENT_PATH'), help='GitHub Event JSON Path')
     
     args = parser.parse_args()

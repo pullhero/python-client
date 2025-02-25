@@ -24,21 +24,21 @@ branding:
   icon: message-square
   color: blue
 inputs:
-  api-key:
-    description: 'API key for DeepSeek/OpenAI'
-    required: true
   github-token:
     description: 'GitHub token'
     required: true
-  provider:
+  api-key:
+    description: 'API key for DeepSeek/OpenAI'
+    required: true
+  api-host:
     description: 'AI provider (deepseek/openai)'
-    default: 'openai'
-    required: false
-  model:
+    default: 'api.openai.com'
+    required: true
+  api-model:
     description: 'Model name'
     default: 'gpt-4-turbo'
-    required: false
-  digest-length:
+    required: true
+  model-digest-length:
     description: 'Max digest length'
     default: '4096'
     required: false
@@ -46,5 +46,8 @@ runs:
   using: "docker"
   image: 'Dockerfile'
   args:
-    - ${{ inputs.api-key }}
     - ${{ inputs.github-token }}
+    - ${{ inputs.api-key }}
+    - ${{ inputs.api-host }}
+    - ${{ inputs.api-model }}
+    - ${{ inputs.model-digest-length }}

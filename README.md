@@ -18,6 +18,8 @@ recommendations using state-of-the-art language models.
 
 ## Quick Start 🚀
 
+Any provider using the standard `/v1/chat/completions` endpoint should work.
+
 ### 1. Basic Setup
 
 Add the following to your `.github/workflows/pullhero.yml`:
@@ -54,10 +56,12 @@ To securely configure PullHero, follow these steps:
 
 #### Input Parameters
 
+TODO:Fix the parameters
+
 | Parameter       | Required | Default     | Description                               |
 |----------------|----------|-------------|-------------------------------------------|
-| `api-key`       | Yes      | -           | API key for LLM provider                  |
 | `github-token`  | Yes      | -           | GitHub access token                       |
+| `api-key`       | Yes      | -           | API key for LLM provider                  |
 | `provider`      | No       | `openai`    | Either `deepseek` or `openai`             |
 | `model`         | No       | `gpt-4-turbo` | Model name (e.g., `deepseek-chat-1.3`)    |
 | `digest-length` | No       | `4096`      | Maximum characters for code digest        |

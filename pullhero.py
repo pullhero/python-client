@@ -65,7 +65,7 @@ def main():
     setup_logging()
     parser = argparse.ArgumentParser(
         description='PullHero automatic PR reviews',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter  # Enables default values in help
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,  # Enables default values in help
         epilog="Note: All API requests (for any provider) will use the endpoint '/v1/chat/completions'."
     )
     # GitHub specific parameters
@@ -124,7 +124,9 @@ Instructions:
     pr = repo.get_pull(pr_number)
 
     sourcerepo = "**[PullHero](https://github.com/ccamacho/pullhero)**"
-    pr.create_issue_comment(f"### PullHero Review\n\n{review_text}\n\n**Vote**: {vote}\n\n{sourcerepo}") 
+    provider_data=f"Provider: {args.api_host} Model: {args.api_model}"
+    model
+    pr.create_issue_comment(f"### [PullHero](https://github.com/ccamacho/pullhero) Review\n\n**{provider_data}**\n\n{review_text}\n\n**Vote**: {vote}\n\n{sourcerepo}") 
 
     logging.info(f"Review completed with vote: {vote}")
 

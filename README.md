@@ -33,8 +33,10 @@ jobs:
       - name: Run code reviews
         uses: ccamacho/pullhero@v1
         with:
-          api-key: ${{ secrets.LLM_API_KEY }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          api-key: "${{ secrets.OPENAI_API_KEY }}"
+          api-host: "api.openai.com"
+          api-model: "gpt-4-turbo"
 ```
 
 ### 2. Configure Secrets
@@ -67,13 +69,10 @@ To securely configure PullHero, follow these steps:
 ```yaml
 uses: ccamacho/pullhero@v1
 with:
-  api-key: ${{ secrets.DEEPSEEK_KEY }}
-  github-token: ${{ secrets.GITHUB_TOKEN }}
-  provider: deepseek
-  model: deepseek-coder-1.3-instruct
-  digest-length: 8192
-  temperature: 0.3
-  max-feedback: 1500
+  github-token: "${{ secrets.GITHUB_TOKEN }}"
+  api-key: "${{ secrets.OPENAI_API_KEY }}"
+  api-host: "api.openai.com"
+  api-model: "gpt-4-turbo"
 ```
 
 ### Complete GitHub action using PullHero
@@ -196,8 +195,10 @@ jobs:
       - name: Run PullHero
         uses: ccamacho/pullhero@v1
         with:
-          api-key: "${{ secrets.OPENAI_API_KEY }}"
           github-token: "${{ secrets.GITHUB_TOKEN }}"
+          api-key: "${{ secrets.OPENAI_API_KEY }}"
+          api-host: "api.openai.com"
+          api-model: "gpt-4-turbo"
 ```
 
 ## Security & Permissions 🔐

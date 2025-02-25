@@ -43,16 +43,13 @@ def get_pr_diff(github_token, owner, repo, pr_number):
     response.raise_for_status()
     return response.text
 
-def call_ai_api(provider, api_key, model, prompt):
+def call_ai_api(api_host, api_key, api_model, prompt):
     """Handles API calls with error handling."""
-    url_map = {
-        "openai": "https://api.openai.com/v1/chat/completions",
-        "deepseek": "https://api.deepseek.com/v1/chat/completions"
-    }
-    url = url_map.get(provider, provider.rstrip("/") + "/v1/chat/completions")
+
+    url=f"https://{api_host}/v1/chat/completions"
 
     payload = {
-        "model": model,
+        "model": api_model,
         "messages": [{"role": "user", "content": prompt}],
         "max_tokens": 1000
     }
@@ -66,12 +63,18 @@ def call_ai_api(provider, api_key, model, prompt):
 
 def main():
     setup_logging()
-    parser = argparse.ArgumentParser(description='Automated PR Review Bot')
-    parser.add_argument('--api-key', default=os.environ.get('LLM_API_KEY'), required=not os.environ.get('LLM_API_KEY'), help='AI API Key')
-    parser.add_argument('--provider', default=os.environ.get('LLM_PROVIDER', 'openai'), help='LLM Provider')
-    parser.add_argument('--model', default=os.environ.get('LLM_PROVIDER', 'gpt-4-turbo'), help='LLM Model')
-    parser.add_argument('--github-token', default=os.environ.get('GITHUB_TOKEN'), required=not os.environ.get('GITHUB_TOKEN'), help='GitHub Token')
-    parser.add_argument('--event-path', default=os.environ.get('GITHUB_EVENT_PATH'), required=not os.environ.get('GITHUB_EVENT_PATH'), help='GitHub Event JSON Path')
+    parser = argparse.ArgumentParser(
+        description='PullHero automatic PR reviews',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter  # Enables default values in help
+        epilog="Note: All API requests (for any provider) will use the endpoint '/v1/chat/completions'."
+    )
+    # GitHub specific parameters
+    parser.add_argument('--github-token', default=os.environ.get('GITHUB_TOKEN'), help='GitHub Token')
+    parser.add_argument('--event-path', default=os.environ.get('GITHUB_EVENT_PATH'), help='GitHub Event JSON Path')
+    # LLM endpoint specific
+    parser.add_argument('--api-key', default=os.environ.get('LLM_API_KEY'), help='AI API Key')
+    parser.add_argument('--api-host', default=os.environ.get('LLM_API_HOST', 'api.openai.com'), help='LLM API HOST, like api.openai.com')
+    parser.add_argument('--api-model', default=os.environ.get('LLM_API_MODEL', 'gpt-4-turbo'), help='LLM Model, like gpt-4-turbo')
     
     args = parser.parse_args()
     
@@ -109,7 +112,7 @@ Instructions:
 3. End with \"Vote: +1\" (approve) or \"Vote: -1\" (request changes)."""
     
     try:
-        review_text = call_ai_api(args.provider, args.api_key, args.model, prompt)
+        review_text = call_ai_api(args.api_host, args.api_key, args.api_model, prompt)
     except Exception as e:
         logging.error(f"AI API call failed: {e}")
         sys.exit(1)

@@ -115,5 +115,7 @@ jobs:
       - name: Run PullHero
         uses: ./
         with:
-          api-key: "${{ secrets.OPENAI_API_KEY }}"
           github-token: "${{ secrets.GITHUB_TOKEN }}"
+          api-key: "${{ secrets.OPENAI_API_KEY }}"
+          api-host: "api.openai.com"
+          api-model: "gpt-4-turbo"

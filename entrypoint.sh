@@ -22,8 +22,11 @@ set -e
 # Make sure .bashrc is sourced
 . /root/.bashrc
 
-export LLM_API_KEY=$1
-export GITHUB_TOKEN=$2
+export GITHUB_TOKEN=$1
+export LLM_API_KEY=$2
+export LLM_API_HOST=$3
+export LLM_API_MODEL=$4
+export LLM_MODEL_DIGEST_LENGTH=$5
 
 echo "Run pullhero"
 python /usr/bin/pullhero.py

@@ -18,6 +18,8 @@ recommendations using state-of-the-art language models.
 
 ## Quick Start 🚀
 
+Any provider using the standard `/v1/chat/completions` endpoint should work.
+
 ### 1. Basic Setup
 
 Add the following to your `.github/workflows/pullhero.yml`:

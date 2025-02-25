@@ -125,9 +125,7 @@ Instructions:
 
     sourcerepo = "**[PullHero](https://github.com/ccamacho/pullhero)**"
     provider_data=f"Provider: {args.api_host} Model: {args.api_model}"
-    model
     pr.create_issue_comment(f"### [PullHero](https://github.com/ccamacho/pullhero) Review\n\n**{provider_data}**\n\n{review_text}\n\n**Vote**: {vote}\n\n{sourcerepo}") 
-
     logging.info(f"Review completed with vote: {vote}")
 
 if __name__ == "__main__":

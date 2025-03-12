@@ -17,14 +17,14 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 ---
-name: Pull Hero Code Review
+name: Pull Hero Code Improvement
 
 on:
   issue_comment:
     types: [created]
 
 jobs:
-  review:
+  code:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -32,7 +32,7 @@ jobs:
 
     if: |
       github.event.issue.pull_request != null &&
-      startsWith(github.event.comment.body, '/review')
+      startsWith(github.event.comment.body, '/code')
 
     steps:
       - name: Checkout Repository

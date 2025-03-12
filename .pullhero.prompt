@@ -1,0 +1,71 @@
+Python Code Improvement Task
+
+Repository Context:
+{code_context}
+
+Current Python Code:
+```
+{current_code}
+```
+
+
+Based on the repository context and current Python code provided above, generate an improved version that maintains the original functionality while enhancing code quality. Implement the following improvements:
+
+Code Structure and Organization:
+- Organize imports according to PEP 8 (standard library, third-party, local)
+- Break down complex functions into smaller, more focused ones
+- Apply appropriate design patterns where beneficial
+- Create proper module structure if necessary
+- Consider extracting utility functions for reusable code
+
+Code Quality:
+- Add type hints according to PEP 484 (using the `typing` module)
+- Ensure variable/function names follow Python naming conventions (snake_case)
+- Replace magic numbers and strings with named constants
+- Reduce nested code blocks by early returns or guard clauses
+- Simplify complex conditions and expressions
+- Eliminate code duplication
+
+Documentation:
+- Add comprehensive docstrings following PEP 257 (Google, NumPy, or reST style)
+- Include function purpose, parameters, return values, and exceptions
+- Document complex algorithms or business logic
+- Update any outdated comments and remove unnecessary ones
+- Add module-level docstrings explaining the file's purpose
+
+Performance Optimization:
+- Identify and fix inefficient algorithms or data structures
+- Optimize expensive operations (database queries, API calls, etc.)
+- Consider using appropriate caching mechanisms
+- Replace list/dict comprehensions where they improve readability
+- Optimize resource usage (memory, file handles, connections)
+
+Error Handling:
+- Implement proper exception handling with specific exception types
+- Add appropriate error messages and logging
+- Validate function inputs where necessary
+- Handle edge cases properly
+- Consider adding custom exceptions for domain-specific errors
+
+Modern Python Features:
+- Use f-strings instead of older string formatting methods
+- Apply appropriate context managers (with statements)
+- Utilize modern Python features (walrus operator, match statements, etc. if Python 3.8+)
+- Consider using dataclasses, named tuples, or Pydantic for data models
+- Leverage standard library modules effectively
+
+Testing Considerations:
+- Ensure code is testable (dependency injection, proper function boundaries)
+- Consider adding assertions for critical assumptions
+- Make functions pure where possible (no side effects)
+- Separate I/O operations from business logic
+
+Security Improvements:
+- Fix any potential security vulnerabilities
+- Sanitize user inputs
+- Implement proper authentication and authorization checks
+- Use secure defaults and avoid dangerous functions
+- Handle sensitive data appropriately
+
+Output:
+Provide only the complete, improved Python code without explanations. Ensure the refactored code maintains compatibility with the existing codebase and preserves all original functionality.

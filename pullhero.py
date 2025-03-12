@@ -148,7 +148,7 @@ def main():
         logging.error("Error accessing repository: %s", e)
         sys.exit(1)
     
-    pr_number = int(os.environ.get("GITHUB_REF").split("/")[2])
+    pr_number = int(os.environ.get("GITHUB_HEAD_REF").split("/")[2])
     base_branch = os.environ.get("GITHUB_BASE_REF")
     pr_branch = os.environ.get("GITHUB_HEAD_REF")
 

@@ -110,6 +110,20 @@ def get_pr_info_from_comment(github_token):
     return pr_number, pr_branch, base_branch
 
 
+def create_or_update_branch(repo, branch_name, base_branch):
+    """Create the branch if it doesn't exist, otherwise return the branch reference."""
+    try:
+        branch_ref = repo.get_git_ref(f"heads/{branch_name}")
+        logging.info(f"Branch '{branch_name}' already exists.")
+    except GithubException:
+        main_ref = repo.get_git_ref(f"heads/{base_branch}")
+        branch_ref = repo.create_git_ref(
+            ref=f"refs/heads/{branch_name}", sha=main_ref.object.sha
+        )
+        logging.info(f"Branch '{branch_name}' created from '{base_branch}'.")
+    return branch_ref
+
+
 def create_or_update_pr(repo, branch, base_branch, pr_title="", pr_body=""):
     """Create a new pull request or update an existing one from the branch."""
     pulls = repo.get_pulls(state="open", head=f"{repo.owner.login}:{branch}")
@@ -247,6 +261,7 @@ def main():
     pr_body = "Some description of PR body..."
 
     # Create the improvements PR targeting the original PR branch
+    create_or_update_branch(repo, improvements_branch, pr_branch)
     create_or_update_pr(repo, improvements_branch, pr_branch, pr_title, pr_body)
 
     local_prompt = Path(f"{local_repo_path}/.pullhero.prompt")

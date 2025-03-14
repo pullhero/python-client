@@ -70,6 +70,46 @@ def clone_repo_with_token(repo_url, local_path, github_token):
         raise
 
 
+def get_pr_info_from_comment(github_token):
+    if not github_token:
+        logging.error("GITHUB_TOKEN not found in environment variables")
+
+    event_path = os.environ.get("GITHUB_EVENT_PATH")
+    if not event_path:
+        logging.error("GITHUB_EVENT_PATH not found")
+
+    with open(event_path, "r") as f:
+        event_data = json.load(f)
+
+    if "issue" not in event_data or "pull_request" not in event_data["issue"]:
+        print("This comment is not on a pull request")
+        return None, None, None
+
+    # Get the PR number from the issue object
+    pr_number = event_data["issue"]["number"]
+
+    # Get PR details from GitHub API
+    github_repository = os.environ.get("GITHUB_REPOSITORY")
+    headers = {
+        "Authorization": f"token {github_token}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+
+    # Call the GitHub API to get PR details
+    url = f"https://api.github.com/repos/{github_repository}/pulls/{pr_number}"
+    response = requests.get(url, headers=headers)
+
+    if response.status_code != 200:
+        print(f"API call failed: {response.status_code} - {response.text}")
+        return pr_number, None, None
+
+    pr_data = response.json()
+    pr_branch = pr_data["head"]["ref"]  # Source branch of the PR
+    base_branch = pr_data["base"]["ref"]  # Target branch of the PR
+
+    return pr_number, pr_branch, base_branch
+
+
 def create_or_update_pr(repo, branch, base_branch, pr_title="", pr_body=""):
     """Create a new pull request or update an existing one from the branch."""
     pulls = repo.get_pulls(state="open", head=f"{repo.owner.login}:{branch}")
@@ -186,8 +226,7 @@ def main():
     for key, value in os.environ.items():
         print(f"{key}: {value}")
 
-    pr_branch = os.environ.get("GITHUB_HEAD_REF")
-    github_ref = os.environ.get("GITHUB_REF")
+    pr_number, pr_branch, base_branch = get_pr_info_from_comment(args.github_token)
     improvements_branch = f"{pr_branch}-pullhero-improvements"  # XXX check
 
     if not pr_branch:
@@ -195,12 +234,6 @@ def main():
             f"GHA environment variables not set, are you running a GHA Workflow?"
         )
         # sys.exit(1)
-
-    if "refs/pull/" in github_ref:
-        pr_number = github_ref.split("/")[2]
-    else:
-        logging.error(f"PR number could not be parsed from: {github_ref}")
-        sys.exit(1)
 
     local_repo_path = "/tmp/clone"
     repo_url = f"https://github.com/{owner}/{repo_str}.git"

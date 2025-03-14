@@ -165,6 +165,7 @@ def call_ai_api(api_host, api_key, api_model, prompt):
 
 def update_file(repo, branch, filename, new_content):
     """Update or create the file on the given branch."""
+    logging.debug(f"Updating '{filename}' on branch '{branch}")
     commit_message = f"Update {filename} via PullHero"
     try:
         file_content, sha = get_current_file(repo, branch, filename)
@@ -303,7 +304,7 @@ Follow these principles:
 - Ensure proper error handling where appropriate
 - Consider modularity and reusability
 
-Output only the complete improved code without explanations.
+Make sure to output only the complete improved code without any explanations or formatting.
 """
         logging.info("Sending prompt to AI API to generate improved code...")
         try:
@@ -315,7 +316,7 @@ Output only the complete improved code without explanations.
             sys.exit(1)
 
         # Update the file on the branch with the LLM response
-        update_file(repo, pr_branch, filename, new_content)
+        update_file(repo, improvements_branch, filename, new_content)
 
         # Update the current pull request
         # pr_title and pr_body will not be used after the PR is created

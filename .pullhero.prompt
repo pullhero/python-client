@@ -68,4 +68,4 @@ Security Improvements:
 - Handle sensitive data appropriately
 
 Output:
-Provide only the complete, improved Python code without explanations. Ensure the refactored code maintains compatibility with the existing codebase and preserves all original functionality.
+Provide only the complete, improved Python code without explanations or formatting. Ensure the refactored code maintains compatibility with the existing codebase and preserves all original functionality.

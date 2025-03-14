@@ -183,6 +183,9 @@ def main():
         logging.error("Error accessing repository: %s", e)
         sys.exit(1)
 
+    for key, value in os.environ.items():
+        print(f"{key}: {value}")
+
     pr_branch = os.environ.get("GITHUB_HEAD_REF")
     github_ref = os.environ.get("GITHUB_REF")
     improvements_branch = f"{pr_branch}-pullhero-improvements"  # XXX check

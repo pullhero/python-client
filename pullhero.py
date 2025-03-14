@@ -258,11 +258,11 @@ def main():
     context = content  # You might also combine tree/summary if needed.
 
     pr_title = "PullHero Code Improvements for PR whatever"
-    pr_body = "Some description of PR body..."
+    pr_body = f"Some description of PR body... including the PR: [#{pr_number}](https://github.com/{owner}/{repo_str}/pull/{pr_number})"
 
     # Create the improvements PR targeting the original PR branch
     create_or_update_branch(repo, improvements_branch, pr_branch)
-    create_or_update_pr(repo, improvements_branch, pr_branch, pr_title, pr_body)
+    # create_or_update_pr(repo, improvements_branch, pr_branch, pr_title, pr_body)
 
     local_prompt = Path(f"{local_repo_path}/.pullhero.prompt")
 
@@ -321,7 +321,8 @@ Output only the complete improved code without explanations.
         update_file(repo, pr_branch, filename, new_content)
 
         # Update the current pull request
-        create_or_update_pr(repo, improvements_branch, pr_branch)
+        # pr_title and pr_body will not be used after the PR is created
+        create_or_update_pr(repo, improvements_branch, pr_branch, pr_title, pr_body)
 
         logging.info(f"{filename} update process completed successfully.")
 

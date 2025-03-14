@@ -237,9 +237,6 @@ def main():
         logging.error("Error accessing repository: %s", e)
         sys.exit(1)
 
-    for key, value in os.environ.items():
-        print(f"{key}: {value}")
-
     pr_number, pr_branch, base_branch = get_pr_info_from_comment(args.github_token)
     improvements_branch = f"{pr_branch}-pullhero-improvements"  # XXX check
 
@@ -268,7 +265,7 @@ def main():
 
     pull_request = repo.get_pull(pr_number)
     for file in pull_request.get_files():
-        filename = file.name
+        filename = file.filename
         # TODO evaluate extensions and skip if match
         # for now, only edit one test file
         if filename not in ["test_file.py"]:

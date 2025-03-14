@@ -68,4 +68,4 @@ Security Improvements:
 - Handle sensitive data appropriately
 
 Output:
-Provide only the complete, improved Python code without explanations or formatting. Ensure the refactored code maintains compatibility with the existing codebase and preserves all original functionality.
+Your response must contain ONLY the improved code with no explanations, introductions, or other text before or after. Do not describe what you changed or why you changed it. Do not include any markdown formatting like ```code``` blocks. Simply output the raw improved code and nothing else. If the original code include text that is not expressed as a comment for the given programming language, remove it.

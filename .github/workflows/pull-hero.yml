@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
-      contents: read
+      contents: write
 
     if: |
       github.event.issue.pull_request != null &&

@@ -296,17 +296,7 @@ If you approve these changes, you can merge this PR into your original branch.
         else:
             # Default prompt
             prompt = f"""Code Improvement Task:
-Context of the repository:
-```
-{context}
-```
-
-Current code to improve:
-```
-{current_file_content}
-```
-
-You are a specialized code improvement agent. Your sole purpose is to optimize, fix, and enhance code files. Based on the repository context and file provided, improve the code by:
+You are a specialized code improvement agent. Your sole purpose is to optimize, fix, and enhance code files. Based on the repository context and file provided below, improve the code in the file by:
 - Fixing bugs and potential errors
 - Improving performance and efficiency
 - Refactoring for better readability
@@ -315,6 +305,15 @@ You are a specialized code improvement agent. Your sole purpose is to optimize, 
 - Optimizing memory usage
 - Removing redundant code
 - Enhancing logic and structure
+
+Context of the repository:
+{context}
+
+Current in the file:
+```
+{current_file_content}
+```
+
 
 ## Instructions
 

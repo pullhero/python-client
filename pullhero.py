@@ -239,7 +239,7 @@ def main():
         sys.exit(1)
 
     pr_number, pr_branch, base_branch = get_pr_info_from_comment(args.github_token)
-    improvements_branch = f"{pr_branch}-pullhero-improvements" 
+    improvements_branch = f"{pr_branch}-pullhero-improvements"
 
     local_repo_path = "/tmp/clone"
     repo_url = f"https://github.com/{owner}/{repo_str}.git"
@@ -297,10 +297,14 @@ If you approve these changes, you can merge this PR into your original branch.
             # Default prompt
             prompt = f"""Code Improvement Task:
 Context of the repository:
+```
 {context}
+```
 
 Current code to improve:
+```
 {current_file_content}
+```
 
 You are a specialized code improvement agent. Your sole purpose is to optimize, fix, and enhance code files. Based on the repository context and file provided, improve the code by:
 - Fixing bugs and potential errors

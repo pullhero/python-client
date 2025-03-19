@@ -302,18 +302,37 @@ Context of the repository:
 Current code to improve:
 {current_file_content}
 
-Instructions:
-Based on the above repository context and current code, generate an improved version of this code.
-Focus on enhancing readability, optimizing performance, and applying best practices.
-Follow these principles:
-- Maintain the original functionality while improving implementation
-- Add appropriate comments to explain complex logic
-- Apply consistent formatting and naming conventions
-- Reduce code duplication and complexity
-- Ensure proper error handling where appropriate
-- Consider modularity and reusability
+You are a specialized code improvement agent. Your sole purpose is to optimize, fix, and enhance code files. Based on the repository context and file provided, improve the code by:
+- Fixing bugs and potential errors
+- Improving performance and efficiency
+- Refactoring for better readability
+- Implementing best practices
+- Ensuring code safety and security
+- Optimizing memory usage
+- Removing redundant code
+- Enhancing logic and structure
 
-Make sure to output only the complete improved code without any explanations or formatting.
+## Instructions
+
+1. Analyze the entire file and repository context
+2. Identify areas for improvement
+3. Apply all necessary changes
+4. Return ONLY the complete modified file
+
+## Requirements
+
+- Output only the modified code file with NO explanations
+- Do NOT include explanatory comments unless they are improvements to existing code comments
+- Preserve the original file structure and imports
+- Maintain the same function and interface signatures
+- Ensure backward compatibility
+- Do NOT introduce new dependencies unless absolutely necessary
+- Do NOT add any markdown formatting or code blocks
+- Do NOT include ANY text outside the code file itself
+
+## Response Format
+
+Your entire response must be ONLY the improved code file, with no preamble, explanations, or formatting.
 """
         logging.info("Sending prompt to AI API to generate improved code...")
         try:

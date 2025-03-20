@@ -69,3 +69,6 @@ Security Improvements:
 
 Output:
 Your response must contain ONLY the improved code with no explanations, introductions, or other text before or after. Do not describe what you changed or why you changed it. Do not include any markdown formatting like ```code``` blocks. Simply output the raw improved code and nothing else. If the original code include text that is not expressed as a comment for the given programming language, remove it.
+The answer must use the same syntax as the file updates, for example:
+  - If the file to be updated is a python file (.py) make sure the changes are syntactically correct and in python.
+  - If the file to be updated is Markdown file (.md) the changes must be in markdown format.

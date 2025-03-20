@@ -332,7 +332,9 @@ Current in the file:
 - Do NOT introduce new dependencies unless absolutely necessary
 - Do NOT add any markdown formatting or code blocks
 - Do NOT include ANY text outside the code file itself
-
+- The answer must use the same syntax as the file updates, for example:
+  - If the file to be updated is a python file (.py) make sure the changes are syntactically correct and in python.
+  - If the file to be updated is Markdown file (.md) the changes must be in markdown format.
 ## Response Format
 
 Your entire response must be ONLY the improved code file, with no preamble, explanations, or formatting.

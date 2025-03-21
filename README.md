@@ -2,9 +2,9 @@
 
 [![GitHub Marketplace](https://img.shields.io/badge/Marketplace-PullHero-blue.svg?logo=github&style=flat-square)](https://github.com/marketplace/actions/pullhero)
 
-**AI-Powered Code Reviews**  
-Automated code reviews with intelligent feedback and approval
-recommendations using state-of-the-art language models.
+**AI-Powered Code Improvements**  
+Automated code improvements with automatic branching using 
+state-of-the-art language models.
 
 ## Features ✨
 

@@ -217,8 +217,8 @@ def main():
     )
     parser.add_argument(
         "--api-model",
-        default=os.environ.get("LLM_API_MODEL", "gpt-4-turbo"),
-        help="LLM Model, e.g., gpt-4-turbo",
+        default=os.environ.get("LLM_API_MODEL", "gpt-4o-mini"),
+        help="LLM Model, e.g., gpt-4o-mini",
     )
 
     args = parser.parse_args()

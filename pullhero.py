@@ -22,6 +22,7 @@ import json
 import logging
 import argparse
 import requests
+import yaml
 import sys
 from github import Github, GithubException
 from gitingest import ingest
@@ -271,22 +272,29 @@ If you approve these changes, you can merge this PR into your original branch.
     # Create the improvements PR targeting the original PR branch
     create_or_update_branch(repo, improvements_branch, pr_branch)
 
-    local_prompt = Path(f"{local_repo_path}/.pullhero.prompt")
+    config_file = Path(f"{local_repo_path}/.pullhero.yaml")
+    config = {}
+    if config_file.is_file():
+        with open(config_file, "r") as f:
+            config = yaml.safe_load(f)
+
+    extensions = config.get("extensions", [])
+    extensions = [ext if ext.startswith(".") else f".{ext}" for ext in extensions]
+
+    skip = config.get("skip", [])
 
     pull_request = repo.get_pull(pr_number)
     for file in pull_request.get_files():
         filename = file.filename
-        # TODO evaluate extensions and skip if match
-        # for now, only edit one test file
-        if filename not in ["test_file.py"]:
+
+        if (Path(filename).suffix.lower() not in extensions) or (filename in skip):
             continue
 
         current_file_content, _ = get_current_file(repo, pr_branch, filename)
 
-        if local_prompt.is_file():
-            logging.info("Found local prompt file")
-            with open(local_prompt, "r") as f:
-                prompt_template = f.read()
+        if config["task"]:
+            logging.info("Found local task")
+            prompt_template = config["task"]
 
             prompt = prompt_template.format(
                 code_context=context,

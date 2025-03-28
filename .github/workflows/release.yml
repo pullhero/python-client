@@ -1,0 +1,45 @@
+---
+name: release
+on:
+  push:
+    branches:
+      - main
+jobs:
+  pypibuild:
+    if: github.repository_owner == 'pullhero'
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: [3.11]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          sudo apt update -y
+          sudo apt remove --purge -y python3-yaml
+          sudo rm -rf /usr/lib/python3/dist-packages/PyYAML*
+          sudo apt install jq -y
+          sudo apt-get remove ansible -y
+          sudo locale-gen en_US.UTF-8
+          sudo dpkg-reconfigure locales
+          sudo apt install build-essential findutils -y
+          # sudo apt install python3-pip
+          # Ensure pip and setuptools are installed inside the correct environment
+          python3 -m ensurepip --default-pip
+          python3 -m pip install --upgrade pip setuptools wheel          
+          # Install dependencies
+          python3 -m pip install -r test-requirements.txt
+          python3 -m pip install --upgrade virtualenv
+          python3 -m pip install --upgrade virtualenv
+          python3 -m pip install --upgrade setuptools
+      - name: Create pypi package and publish
+        run: |
+          ./ci/pypi_publish.sh -k ${{ secrets.PYPI_TOKEN }}
+      - name: Test the CLI
+        run: |
+          pullhero -v

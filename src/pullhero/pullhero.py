@@ -22,7 +22,7 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 from pullhero.utils.misc import get_banner, setup_logging
 from pullhero.agents.code import action_code
-from pullhero.agents.review import action_review
+from pullhero.agents.review import action_review, execute_review_action
 from pullhero.agents.consult import action_consult
 from pullhero.agents.document import action_document
 
@@ -68,28 +68,67 @@ def main():
         epilog="Note: All API requests (for any provider) will use the endpoint '/v1/chat/completions'.",
     )
 
-    # Specific to PullHero
+    # Specific to the VCS (GitHub OR Gitlab)
     parser.add_argument(
-        "--pullhero-github-api-token",
-        default=os.environ.get("GITHUB_TOKEN"),
-        help="GitHub API Token"
+        "--vcs-provider",
+        required=not os.environ.get("VCS_PROVIDER"),
+        default=os.environ.get("VCS_PROVIDER"),
+        help="VCS Provider"
     )
     parser.add_argument(
-        "--pullhero-action",
-        required=not os.environ.get("PULLHERO_ACTION"),
-        default=os.environ.get("PULLHERO_ACTION"),
-        choices=["code", "review", "consult", "document"],
-        help="PullHero action (required, options: %(choices)s)",
+        "--vcs-token",
+        required=not os.environ.get("VCS_TOKEN"),
+        default=os.environ.get("VCS_TOKEN"),
+        help="VCS Token"
     )
     parser.add_argument(
-        "--pullhero-review-action",
-        required=not os.environ.get("PULLHERO_REVIEW_ACTION"),
-        default=os.environ.get("PULLHERO_REVIEW_ACTION"),
-        choices=["comment", "review"],
-        help="PullHero review action (required, options: %(choices)s)",
+        "--vcs-repository",
+        required=not os.environ.get("VCS_REPOSITORY"),
+        default=os.environ.get("VCS_REPOSITORY"),
+        help="VCS Repository"
+    )
+    parser.add_argument(
+        "--vcs-change-id",
+        required=not os.environ.get("VCS_CHANGE_ID"),
+        default=os.environ.get("VCS_CHANGE_ID"),
+        help="VCS change, this can be the ID of a PR or an issue"
+    )
+    parser.add_argument(
+        "--vcs-change-type",
+        required=not os.environ.get("VCS_CHANGE_TYPE"),
+        default=os.environ.get("VCS_CHANGE_TYPE"),
+        help="VCS change type, this can be the an issue, pr, mr..."
+    )
+    parser.add_argument(
+        "--vcs-base-branch",
+        required=not os.environ.get("VCS_BASE_BRANCH"),
+        default=os.environ.get("VCS_BASE_BRANCH"),
+        help="VCS base branch"
+    )
+    parser.add_argument(
+        "--vcs-head-branch",
+        required=not os.environ.get("VCS_HEAD_BRANCH"),
+        default=os.environ.get("VCS_HEAD_BRANCH"),
+        help="VCS head branch"
     )
 
-    # LLM endpoint specific parameters
+    # Specific to PullHero (How to interact with the agents)
+    parser.add_argument(
+        "--agent",
+        required=not os.environ.get("ACTION"),
+        default=os.environ.get("ACTION"),
+        choices=["code", "review", "consult", "document"],
+        help="PullHero agent (required, options: %(choices)s)",
+    )
+    parser.add_argument(
+        "--agent-action",
+        required=not os.environ.get("REVIEW_ACTION"),
+        default=os.environ.get("REVIEW_ACTION"),
+        choices=["comment", "review"],
+        help="PullHero agent action (required, options: %(choices)s)",
+    )
+
+    # Specific to the endpoint parameters (How to interact with the LLM providers)
     parser.add_argument(
         "--llm-api-key",
         required=not os.environ.get("LLM_API_KEY"),
@@ -112,20 +151,29 @@ def main():
     args = parser.parse_args()
 
     common_params = {
-        "github_token": args.pullhero_github_api_token,
-        "review_action": args.pullhero_review_action,
+        "vcs_provider": args.vcs_provider,
+        "vcs_token": args.vcs_token,
+        "vcs_repository": args.vcs_repository,
+        "vcs_change_id": args.vcs_change_id,
+        "vcs_change_type": args.vcs_change_type,
+        "vcs_base_branch": args.vcs_base_branch,
+        "vcs_head_branch": args.vcs_head_branch,
+
+        "agent": args.agent,
+        "agent_action": args.agent_action,
+
         "llm_api_key": args.llm_api_key,
         "llm_api_host": args.llm_api_host,
         "llm_api_model": args.llm_api_model
     }
 
-    if args.pullhero_action == "code":
+    if args.agent == "code":
         action_code(**common_params)
-    elif args.pullhero_action == "review":
+    elif args.agent == "review":
         action_review(**common_params)
-    elif args.pullhero_action == "consult":
+    elif args.agent == "consult":
         action_consult(**common_params)
-    elif args.pullhero_action == "document":
+    elif args.agent == "document":
         action_document(**common_params)
     else:
         print("Unsupported action provided.")

@@ -1,5 +1,15 @@
-def action_code(github_token: str, review_action: str, llm_api_key: str, 
-                         llm_api_host: str, llm_api_model: str) -> None:
+def action_code(vcs_provider: str,
+                vcs_token: str,
+                vcs_repository: str,
+                vcs_change_id: str,
+                vcs_change_type: str,
+                vcs_base_branch: str,
+                vcs_head_branch: str,
+                agent: str,
+                agent_action: str,
+                llm_api_key: str,
+                llm_api_host: str,
+                llm_api_model: str) -> None:
     """
     Handles pullhero code actions.
     

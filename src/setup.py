@@ -28,7 +28,7 @@ if version_info < (3, 5):
 
 _NAME = 'pullhero'
 _DESCRIPTION = 'pullhero CLI'
-_REVISION = '0.0.1'
+_REVISION = '0.0.2'
 
 pullhero_revision = os.environ.get('PULLHERO_REVISION', "")
 if (pullhero_revision != ""):

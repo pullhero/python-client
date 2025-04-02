@@ -20,16 +20,15 @@
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
-from pullhero.utils.misc import get_banner, setup_logging
+from pullhero.utils.misc import get_banner, setup_logging, get_version
 from pullhero.agents.code import action_code
 from pullhero.agents.review import action_review
 from pullhero.agents.consult import action_consult
 from pullhero.agents.document import action_document
 
-from pkg_resources import get_distribution
 import os
 
-pullhero_version = get_distribution('pullhero').version
+pullhero_version = get_version()
 
 
 def main():

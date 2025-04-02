@@ -78,6 +78,7 @@ rm -rf dist
 python3 -m venv venv
 source venv/bin/activate
 
+# rm -rf dist
 python3 setup.py sdist
 python3 -m pip install --force dist/*
 twine check dist/*

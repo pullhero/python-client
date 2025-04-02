@@ -22,7 +22,7 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 from pullhero.utils.misc import get_banner, setup_logging
 from pullhero.agents.code import action_code
-from pullhero.agents.review import action_review, execute_review_action
+from pullhero.agents.review import action_review
 from pullhero.agents.consult import action_consult
 from pullhero.agents.document import action_document
 

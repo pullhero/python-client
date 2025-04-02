@@ -32,7 +32,7 @@ def action_review(vcs_provider: str,
     #         raise ValueError("PR ID required for comments")
     #     return provider.post_comment(vcs_repository, vcs_change_id, "asdf") #kwargs['comment_body'])
     
-    elif agent_action == "review":
+    if agent_action == "review":
         if not vcs_change_id:
             raise ValueError("PR ID required for reviews")
         return provider.submit_review(

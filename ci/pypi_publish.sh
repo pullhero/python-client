@@ -74,8 +74,12 @@ done
 
 cd ./src
 rm -rf dist
+# Virtual env
+python3 -m venv venv
+source venv/bin/activate
+
 python3 setup.py sdist
-sudo python3 -m pip install --force dist/*
+python3 -m pip install --force dist/*
 twine check dist/*
 
 if [ "$publish" == "1" ]; then
@@ -103,3 +107,8 @@ EOF
 
     twine upload --verbose --repository pullhero dist/*
 fi
+
+# Make pullhero globally available
+sudo ln -s "$(pwd)/venv/bin/pullhero" /usr/local/bin/
+# Dont leave the virtual env to test the cli
+# deactivate

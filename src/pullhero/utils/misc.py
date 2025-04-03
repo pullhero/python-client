@@ -26,12 +26,8 @@ import requests
 import sys
 from gitingest import ingest
 import pygit2
-from pkg_resources import get_distribution
 from typing import Tuple, Optional
 from pathlib import Path
-
-def get_version():
-    return str(get_distribution('pullhero').version)
 
 def setup_logging():
     logging.basicConfig(

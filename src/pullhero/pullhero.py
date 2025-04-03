@@ -18,19 +18,35 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, Action
 
-from pullhero.utils.misc import get_banner, setup_logging, get_version
+from pullhero.utils.misc import get_banner, setup_logging
 from pullhero.agents.code import action_code
 from pullhero.agents.review import action_review
 from pullhero.agents.consult import action_consult
 from pullhero.agents.document import action_document
+from pullhero.__about__ import __name__, __description__, __version__
 
+import json
 import logging
 import os
+import sys
 
-pullhero_version = get_version()
+from pkg_resources import get_distribution
 
+class JsonVersionAction(Action):
+    def __init__(self, option_strings, dest, **kwargs):
+        super().__init__(option_strings, dest, nargs=0, **kwargs)
+    
+    def __call__(self, parser, namespace, values, option_string=None):
+        dist = get_distribution('pullhero')
+        version_info = {
+            "name": __name__,
+            "description": __description__,
+            "version": __version__,
+        }
+        print(json.dumps(version_info, indent=2))
+        sys.exit(0)
 
 def main():
     """
@@ -51,8 +67,8 @@ def main():
     )
     base_parser.add_argument(
         '-v', '--version',
-        action='version',
-        version=f'pullhero {pullhero_version}'
+        action=JsonVersionAction,
+        help="Show PullHero's version in a JSON object"
     )
     
     # Parse known args first to check for early-exit options

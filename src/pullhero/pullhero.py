@@ -26,6 +26,7 @@ from pullhero.agents.review import action_review
 from pullhero.agents.consult import action_consult
 from pullhero.agents.document import action_document
 
+import logging
 import os
 
 pullhero_version = get_version()
@@ -165,6 +166,8 @@ def main():
         "llm_api_host": args.llm_api_host,
         "llm_api_model": args.llm_api_model
     }
+
+    logging.info(f"PullHero v{pullhero_version}")
 
     if args.agent == "code":
         action_code(**common_params)

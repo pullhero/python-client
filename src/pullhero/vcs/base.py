@@ -17,7 +17,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from abc import ABC, abstractmethod
-from typing import Optional, Dict, Literal
+from typing import Optional, Dict, Tuple, Literal, List
 import logging
 
 class VCSOperations(ABC):
@@ -79,25 +79,29 @@ class VCSOperations(ABC):
         """
         pass
 
-    @abstractmethod
     def post_comment(
         self,
-        pr_id: str,
-        body: str
+        repo_identifier: str,
+        target_id: str,
+        body: str,
+        target_type: Literal["pr", "issue"] = "pr"
     ) -> Dict[str, str]:
         """
-        Post a comment on an existing pull/merge request.
+        Post a comment on a Pull Request or Issue.
 
         Args:
-            pr_id: Identifier of the PR/MR
-            body: Content of the comment
+            repo_identifier: Repository identifier (format varies by provider)
+            target_id: PR/MR number or Issue ID
+            body: Comment content
+            target_type: Type of target ("pr" or "issue")
 
         Returns:
             Dictionary containing:
-            - 'id': Identifier of the created comment
+            - 'id': ID of the created comment
+            - 'url': URL to the comment (if available)
 
         Raises:
-            ValueError: If PR/MR not found
+            ValueError: For invalid repository or target ID
             Exception: For VCS-specific operation failures
         """
         pass
@@ -146,6 +150,190 @@ class VCSOperations(ABC):
 
         Raises:
             ValueError: If PR/MR not found
+            Exception: For VCS-specific operation failures
+        """
+        pass
+
+    @abstractmethod
+    def get_current_readme(
+        self,
+        repo_identifier: str,
+        branch: str
+    ) -> Tuple[str, Optional[str]]:
+        """
+        Fetch the current README.md content from the given branch, if it exists.
+
+        Args:
+            repo_identifier: Repository identifier (format varies by provider)
+            branch: Branch name to check for README.md
+
+        Returns:
+            Tuple containing:
+            - README content as string (empty if not found)
+            - SHA/ID of the file (None if not found)
+        """
+        pass
+
+    @abstractmethod
+    def create_or_update_branch(
+        self,
+        repo_identifier: str,
+        branch_name: str,
+        base_branch: str
+    ) -> Dict[str, str]:
+        """
+        Create the branch if it doesn't exist, otherwise return the branch reference.
+
+        Args:
+            repo_identifier: Repository identifier (format varies by provider)
+            branch_name: Name of the branch to create/check
+            base_branch: Name of the base branch to create from
+
+        Returns:
+            Dictionary containing:
+            - 'ref': Reference to the branch
+            - 'status': 'created' or 'exists'
+        """
+        pass
+
+    @abstractmethod
+    def update_readme_file(
+        self,
+        repo_identifier: str,
+        branch: str,
+        new_content: str
+    ) -> Dict[str, str]:
+        """
+        Update or create the README.md file on the given branch.
+
+        Args:
+            repo_identifier: Repository identifier (format varies by provider)
+            branch: Branch name to update README.md on
+            new_content: New content for README.md
+
+        Returns:
+            Dictionary containing:
+            - 'status': 'created' or 'updated'
+            - 'sha': New SHA/ID of the file
+        """
+        pass
+
+    @abstractmethod
+    def create_or_update_pr(
+        self,
+        repo_identifier: str,
+        branch: str,
+        base_branch: str,
+        pr_title: str,
+        pr_body: str
+    ) -> Dict[str, str]:
+        """
+        Create a new pull request or update an existing one from the branch.
+
+        Args:
+            repo_identifier: Repository identifier (format varies by provider)
+            branch: Source branch name
+            base_branch: Target branch name
+            pr_title: Title of the pull request
+            pr_body: Body/description of the pull request
+
+        Returns:
+            Dictionary containing:
+            - 'url': URL of the PR/MR
+            - 'id': ID of the PR/MR
+            - 'status': 'created' or 'exists'
+        """
+        pass
+
+    @abstractmethod
+    def get_issues_with_label(
+        self,
+        repo_identifier: str,
+        label: str
+    ) -> List[Dict]:
+        """
+        Retrieve all issues with a specific label.
+
+        Args:
+            repo_identifier: Repository identifier (format varies by provider)
+            label: Label to filter issues by
+
+        Returns:
+            List of issue dictionaries with their details
+
+        Raises:
+            ValueError: If repository is invalid or label is empty
+            Exception: For VCS-specific operation failures
+        """
+        pass
+
+    @abstractmethod
+    def get_issue_comments(
+        self,
+        repo_identifier: str,
+        issue_id: str
+    ) -> List[Dict]:
+        """
+        Retrieve all comments for a specific issue.
+
+        Args:
+            repo_identifier: Repository identifier (format varies by provider)
+            issue_id: Number/ID of the issue
+
+        Returns:
+            List of comment dictionaries with their details
+
+        Raises:
+            ValueError: If repository or issue identifier is invalid
+            Exception: For VCS-specific operation failures
+        """
+        pass
+
+    @abstractmethod
+    def remove_label_from_issue(
+        self,
+        repo_identifier: str,
+        issue_number: str,
+        label: str
+    ) -> bool:
+        """
+        Remove a label from a specific issue.
+
+        Args:
+            repo_identifier: Repository identifier (format varies by provider)
+            issue_number: Number/ID of the issue
+            label: Label to remove
+
+        Returns:
+            True if removal was successful, False otherwise
+
+        Raises:
+            ValueError: If any parameter is invalid
+            Exception: For VCS-specific operation failures
+        """
+        pass
+
+    @abstractmethod
+    def get_issue_details(
+        self,
+        repo_identifier: str,
+        issue_id: str
+    ) -> Dict[str, str]:
+        """
+        Retrieve the title and body of a specific issue.
+
+        Args:
+            repo_identifier: Repository identifier (format varies by provider)
+            issue_id: Number/ID of the issue (GitHub: number, GitLab: IID)
+
+        Returns:
+            Dictionary containing:
+            - 'title': Issue title
+            - 'body': Issue description/body
+            - 'url': URL to the issue (optional)
+
+        Raises:
+            ValueError: If repository or issue ID is invalid
             Exception: For VCS-specific operation failures
         """
         pass

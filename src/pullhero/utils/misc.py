@@ -244,7 +244,7 @@ def call_ai_api(
     api_key: str,
     api_model: str,
     prompt: str,
-    timeout: int = 30
+    timeout: int = 120
 ) -> str:
     """
     Make an API call to an AI service for code review analysis.
@@ -260,7 +260,7 @@ def call_ai_api(
     prompt : str
         The review prompt to send to the AI
     timeout : int, optional
-        Request timeout in seconds (default: 30)
+        Request timeout in seconds (default: 120)
 
     Returns:
     --------

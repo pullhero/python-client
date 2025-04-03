@@ -254,48 +254,47 @@ def get_review(
     ...     llm_api_model="gpt-4"
     ... )
     """
-    logger = logging.getLogger(__name__)
-    logger.info(f"Starting review generation for {vcs_repository} PR/MR {vcs_change_id}")
+    logging.info(f"Starting review generation for {vcs_repository} PR/MR {vcs_change_id}")
 
     # Validate inputs
     if not all([vcs_provider, vcs_token, vcs_repository, vcs_change_id]):
         error_msg = "Missing required parameters for review generation"
-        logger.error(error_msg)
+        logging.error(error_msg)
         raise ValueError(error_msg)
 
     try:
         # Initialize provider and get diff
-        logger.info(f"Initializing {vcs_provider} provider")
+        logging.info(f"Initializing {vcs_provider} provider")
         provider = VCSOperations.from_provider(vcs_provider, vcs_token)
         
-        logger.info(f"Fetching diff for PR/MR {vcs_change_id}")
+        logging.info(f"Fetching diff for PR/MR {vcs_change_id}")
         diff = provider.get_pr_diff(vcs_repository, vcs_change_id)
-        logger.debug(f"Retrieved diff with {len(diff.splitlines())} lines")
+        logging.debug(f"Retrieved diff with {len(diff.splitlines())} lines")
 
         # Clone and analyze repository
         repo_url = f"https://github.com/{vcs_repository}" if vcs_provider == "github" \
                   else f"https://gitlab.com/{vcs_repository}"
         
-        logger.info(f"Cloning repository from {repo_url}")
+        logging.info(f"Cloning repository from {repo_url}")
         clone_repo_with_token(repo_url, vcs_token)
         
-        logger.info("Analyzing repository content")
+        logging.info("Analyzing repository content")
         summary, tree, content = ingest_repository("/tmp/clone")
-        logger.debug(f"Repository analysis complete - {len(content.splitlines())} lines of content")
+        logging.debug(f"Repository analysis complete - {len(content.splitlines())} lines of content")
 
         # Generate and submit prompt
-        logger.info("Generating review prompt")
+        logging.info("Generating review prompt")
         prompt = get_prompt(content, diff)
-        logger.debug(f"Prompt generated with {len(prompt.splitlines())} lines")
+        logging.debug(f"Prompt generated with {len(prompt.splitlines())} lines")
 
-        logger.info(f"Calling AI API ({llm_api_model}) for review generation")
+        logging.info(f"Calling AI API ({llm_api_model}) for review generation")
         review_text = call_ai_api(llm_api_host, llm_api_key, llm_api_model, prompt)
-        logger.info("AI review generation completed successfully")
+        logging.info("AI review generation completed successfully")
 
         return review_text
 
     except Exception as e:
-        logger.error(f"Review generation failed: {str(e)}")
+        logging.error(f"Review generation failed: {str(e)}")
         raise
 
 def get_prompt(content: str, diff: str) -> str:
@@ -326,8 +325,7 @@ def get_prompt(content: str, diff: str) -> str:
     ...     diff="...git diff output..."
     ... )
     """
-    logger = logging.getLogger(__name__)
-    logger.info("Constructing AI review prompt")
+    logging.info("Constructing AI review prompt")
 
     prompt = f"""Code Review Task:
 
@@ -372,5 +370,5 @@ Review Instructions:
 
 6. Keep the review professional and constructive."""
 
-    logger.debug(f"Generated prompt with {len(prompt.splitlines())} lines")
+    logging.debug(f"Generated prompt with {len(prompt.splitlines())} lines")
     return prompt

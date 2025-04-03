@@ -20,7 +20,7 @@ from github import Github
 from pullhero.vcs.base import VCSOperations
 import requests
 import logging
-from typing import Dict, Literal
+from typing import Dict, Literal, Tuple, Optional, List
 from typing_extensions import TypedDict
 
 # Type definitions for better type hints
@@ -117,36 +117,34 @@ class GitHubProvider(VCSOperations):
 
     def post_comment(
         self,
-        repo_name: str,
-        pr_id: int,
-        body: str
-    ) -> CommentResult:
+        repo_identifier: str,
+        target_id: str,
+        body: str,
+        target_type: Literal["pr", "issue"] = "pr"
+    ) -> Dict[str, str]:
         """
-        Post a comment on a GitHub Pull Request.
-
-        Args:
-            repo_name: Repository name in 'owner/repo' format
-            pr_id: Pull Request number
-            body: Comment content
-
-        Returns:
-            Dictionary containing:
-            - 'id': ID of the created comment
-
-        Raises:
-            ValueError: For invalid repository name or PR ID
-            Exception: For GitHub API failures
+        GitHub implementation to post comments on PRs or Issues.
         """
-        self.logger.info(f"Posting comment on PR #{pr_id} in {repo_name}")
+        self.logger.info(f"Posting comment on {target_type.upper()} #{target_id} in {repo_identifier}")
         self.logger.debug(f"Comment preview: {body[:50]}...")
-        
+
         try:
-            repo = self.client.get_repo(repo_name)
-            pr = repo.get_pull(pr_id)
-            comment = pr.create_issue_comment(body)
+            repo = self.client.get_repo(repo_identifier)
+            
+            if target_type == "pr":
+                target = repo.get_pull(int(target_id))
+            elif target_type == "issue":
+                target = repo.get_issue(int(target_id))
+            else:
+                raise ValueError(f"Invalid target_type: {target_type}")
+
+            comment = target.create_comment(body)
             
             self.logger.info(f"Successfully posted comment with ID {comment.id}")
-            return {"id": comment.id}
+            return {
+                "id": comment.id,
+                "url": comment.html_url
+            }
         except Exception as e:
             self.logger.error(f"Failed to post comment: {str(e)}")
             raise
@@ -252,4 +250,221 @@ class GitHubProvider(VCSOperations):
             raise
         except Exception as e:
             self.logger.error(f"Failed to get PR diff: {str(e)}")
+            raise
+
+    def get_current_readme(
+        self,
+        repo_name: str,
+        branch: str
+    ) -> Tuple[str, Optional[str]]:
+        """
+        Fetch the current README.md content from the given branch, if it exists.
+        """
+        self.logger.info(f"Fetching README.md from {repo_name} on branch {branch}")
+        try:
+            repo = self.client.get_repo(repo_name)
+            readme_file = repo.get_contents("README.md", ref=branch)
+            return readme_file.decoded_content.decode('utf-8'), readme_file.sha
+        except Exception as e:
+            self.logger.info("No existing README.md found.: {str(e)}")
+            return "", None
+
+    def create_or_update_branch(
+        self,
+        repo_name: str,
+        branch_name: str,
+        base_branch: str
+    ) -> Dict[str, str]:
+        """
+        Create the branch if it doesn't exist, otherwise return the branch reference.
+        """
+        self.logger.info(f"Checking/Creating branch {branch_name} from {base_branch}")
+        repo = self.client.get_repo(repo_name)
+        
+        try:
+            branch_ref = repo.get_git_ref(f"heads/{branch_name}")
+            self.logger.info(f"Branch '{branch_name}' already exists.")
+            return {"ref": branch_name, "status": "exists"}
+        except Exception as e:
+            main_ref = repo.get_git_ref(f"heads/{base_branch}")
+            repo.create_git_ref(ref=f"refs/heads/{branch_name}", sha=main_ref.object.sha)
+            self.logger.info(f"Branch '{branch_name}' created from '{base_branch}'.")
+            self.logger.info(f"Exception '{e}'")
+            return {"ref": branch_name, "status": "created"}
+
+    def update_readme_file(
+        self,
+        repo_name: str,
+        branch: str,
+        new_content: str
+    ) -> Dict[str, str]:
+        """
+        Update or create the README.md file on the given branch.
+        """
+        self.logger.info(f"Updating README.md on branch {branch}")
+        commit_message = "Update README documentation via PullHero"
+        repo = self.client.get_repo(repo_name)
+        
+        try:
+            readme_content, sha = self.get_current_readme(repo_name, branch)
+            if sha:
+                result = repo.update_file(
+                    path="README.md",
+                    message=commit_message,
+                    content=new_content,
+                    sha=sha,
+                    branch=branch
+                )
+                self.logger.info("README.md updated on branch '%s'.", branch)
+                return {"status": "updated", "sha": result["commit"].sha}
+            else:
+                result = repo.create_file(
+                    path="README.md",
+                    message="Create README documentation via PullHero",
+                    content=new_content,
+                    branch=branch
+                )
+                self.logger.info("README.md created on branch '%s'.", branch)
+                return {"status": "created", "sha": result["commit"].sha}
+        except GithubException as e:
+            self.logger.error("Failed to update README.md: %s", e)
+            raise
+
+    def create_or_update_pr(
+        self,
+        repo_name: str,
+        branch: str,
+        base_branch: str,
+        pr_title: str,
+        pr_body: str
+    ) -> Dict[str, str]:
+        """
+        Create a new pull request or update an existing one from the branch.
+        """
+        self.logger.info(f"Creating/Updating PR from {branch} to {base_branch}")
+        repo = self.client.get_repo(repo_name)
+        
+        pulls = repo.get_pulls(state='open', head=f"{repo.owner.login}:{branch}")
+        if pulls.totalCount == 0:
+            pr = repo.create_pull(
+                title=pr_title,
+                body=pr_body,
+                head=branch,
+                base=base_branch
+            )
+            self.logger.info("Created PR #%s for README update.", pr.number)
+            return {
+                "url": pr.html_url,
+                "id": pr.number,
+                "status": "created"
+            }
+        else:
+            pr = pulls[0]
+            self.logger.info("Existing PR #%s found for README update.", pr.number)
+            return {
+                "url": pr.html_url,
+                "id": pr.number,
+                "status": "exists"
+            }
+
+    def get_issues_with_label(
+        self,
+        repo_identifier: str,
+        label: str
+    ) -> List[Dict]:
+        """
+        GitHub implementation for getting issues with a specific label.
+        """
+        self.logger.info(f"Getting issues with label '{label}' from {repo_identifier}")
+        try:
+            url = f"https://api.github.com/repos/{repo_identifier}/issues?labels={label}"
+            headers = {"Authorization": f"Bearer {self.token}"}
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            self.logger.error(f"Failed to get issues with label: {str(e)}")
+            raise
+
+    def get_issue_comments(
+        self,
+        repo_identifier: str,
+        issue_id: str
+    ) -> List[Dict]:
+        """
+        GitHub implementation for getting issue comments.
+        """
+        self.logger.info(f"Getting comments for issue #{issue_id} in {repo_identifier}")
+        try:
+            # Validate issue_id is numeric
+            if not issue_id.isdigit():
+                raise ValueError(f"Invalid issue ID: {issue_id}")
+            
+            # Get repository and issue
+            repo = self.client.get_repo(repo_identifier)
+            issue = repo.get_issue(int(issue_id))
+            
+            # Get and return comments
+            comments = issue.get_comments()
+            return [{
+                "id": comment.id,
+                "body": comment.body,
+                "created_at": comment.created_at,
+                "user": comment.user.login,
+                "html_url": comment.html_url
+            } for comment in comments]
+            
+        except ValueError as ve:
+            self.logger.error(f"Validation error: {str(ve)}")
+            raise
+        except Exception as e:
+            self.logger.error(f"Failed to get issue comments: {str(e)}")
+            raise
+
+    def remove_label_from_issue(
+        self,
+        repo_identifier: str,
+        issue_number: str,
+        label: str
+    ) -> bool:
+        """
+        GitHub implementation for removing a label from an issue.
+        """
+        self.logger.info(f"Removing label '{label}' from issue #{issue_number}")
+        try:
+            url = f"https://api.github.com/repos/{repo_identifier}/issues/{issue_number}/labels/{label}"
+            headers = {"Authorization": f"Bearer {self.token}"}
+            response = requests.delete(url, headers=headers)
+            
+            if response.status_code in (200, 204):
+                self.logger.info(f"Successfully removed label '{label}'")
+                return True
+            else:
+                self.logger.error(f"Failed to remove label: {response.text}")
+                return False
+        except requests.exceptions.RequestException as e:
+            self.logger.error(f"Failed to remove label: {str(e)}")
+            raise
+
+    def get_issue_details(
+        self,
+        repo_identifier: str,
+        issue_id: str
+    ) -> Dict[str, str]:
+        """
+        GitHub implementation to fetch issue title and body.
+        """
+        self.logger.info(f"Fetching details for issue #{issue_id} in {repo_identifier}")
+        try:
+            repo = self.client.get_repo(repo_identifier)
+            issue = repo.get_issue(int(issue_id))
+            
+            return {
+                "title": issue.title,
+                "body": issue.body,
+                "url": issue.html_url,
+                "state": issue.state,  # e.g., "open" or "closed"
+            }
+        except Exception as e:
+            self.logger.error(f"Failed to fetch issue details: {str(e)}")
             raise

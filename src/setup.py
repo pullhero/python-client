@@ -22,12 +22,14 @@ from sys import version_info
 from setuptools import find_packages, setup
 from pullhero.__about__ import __name__ as _NAME, __description__ as _DESCRIPTION, __version__ as _REVISION
 
+
 if version_info < (3, 5):
     raise RuntimeError(
         'Python 3.5 or greater is required'
     )
 
 pullhero_revision = os.environ.get('PULLHERO_REVISION', "")
+
 if (pullhero_revision != ""):
     _REVISION = _REVISION + "." + pullhero_revision
 
@@ -36,7 +38,6 @@ if os.path.isfile('../README.md'):
         long_description = f.read()
 else:
     long_description = _DESCRIPTION
-
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 

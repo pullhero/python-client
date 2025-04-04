@@ -338,6 +338,116 @@ class VCSOperations(ABC):
         """
         pass
 
+
+    @abstractmethod
+    def get_pr_info_from_comment(
+        self,
+        repo_identifier: str,
+        pr_number: str
+    ) -> Optional[Dict[str, str]]:
+        """
+        Get PR/MR information from repository and PR number.
+
+        Args:
+            repo_identifier: Repository identifier (format varies by provider)
+            pr_number: PR/MR number
+
+        Returns:
+            Dictionary containing:
+            - 'pr_number': PR/MR number
+            - 'pr_branch': Source branch
+            - 'base_branch': Target branch
+            - 'repo_identifier': Repository identifier
+            None if PR not found
+
+        Raises:
+            Exception: For VCS-specific operation failures
+        """
+        pass
+
+    @abstractmethod
+    def get_pr_files(
+        self,
+        repo_identifier: str,
+        pr_number: str
+    ) -> List[Dict[str, str]]:
+        """
+        Get list of files modified in a PR/MR.
+
+        Args:
+            repo_identifier: Repository identifier
+            pr_number: PR/MR number
+
+        Returns:
+            List of dictionaries with file information:
+            - 'filename': Path to file
+            - 'status': Modification status (added, modified, removed)
+            - 'changes': Number of changes
+            - 'additions': Lines added
+            - 'deletions': Lines removed
+        """
+        pass
+
+    @abstractmethod
+    def get_current_file(
+        self,
+        repo_identifier: str,
+        branch: str,
+        filename: str
+    ) -> Tuple[str, Optional[str]]:
+        """
+        Fetch the current file content from the given branch.
+
+        Args:
+            repo_identifier: Repository identifier
+            branch: Branch name
+            filename: Path to the file
+
+        Returns:
+            Tuple of (file_content, file_sha) or ("", None) if file doesn't exist
+        """
+        pass
+
+    @abstractmethod
+    def update_file(
+        self,
+        repo_identifier: str,
+        branch: str,
+        filename: str,
+        new_content: str
+    ) -> Dict[str, str]:
+        """
+        Update or create a file on the given branch.
+
+        Args:
+            repo_identifier: Repository identifier
+            branch: Branch name
+            filename: Path to the file
+            new_content: New file content
+
+        Returns:
+            Dictionary with operation status and commit SHA
+        """
+        pass
+
+    @abstractmethod
+    def update_pr(
+        self,
+        repo_identifier: str,
+        branch: str
+    ) -> Dict[str, str]:
+        """
+        Get information about an existing PR from a branch.
+
+        Args:
+            repo_identifier: Repository identifier
+            branch: Source branch name
+
+        Returns:
+            Dictionary with PR information or None if not found
+        """
+        pass
+
     @classmethod
     def from_provider(
         cls,

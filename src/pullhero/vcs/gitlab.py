@@ -298,3 +298,152 @@ def post_comment(
         except gitlab.exceptions.GitlabError as e:
             self.logger.error(f"Failed to fetch issue details: {str(e)}")
             raise
+
+
+    def get_pr_info_from_comment(
+        self,
+        project_id: str,
+        mr_iid: str
+    ) -> Optional[Dict[str, str]]:
+        """
+        GitLab implementation to get MR info from project and MR IID.
+        """
+        self.logger.info(f"Getting MR info for !{mr_iid} in {project_id}")
+        try:
+            project = self.client.projects.get(project_id)
+            mr = project.mergerequests.get(mr_iid)
+            
+            return {
+                "pr_number": str(mr.iid),
+                "pr_branch": mr.source_branch,
+                "base_branch": mr.target_branch,
+                "repo_identifier": project_id,
+                "pr_url": mr.web_url,
+                "title": mr.title,
+                "state": mr.state
+            }
+        except gitlab.exceptions.GitlabGetError:
+            self.logger.error(f"MR !{mr_iid} not found")
+            return None
+        except Exception as e:
+            self.logger.error(f"Failed to get MR info: {str(e)}")
+            raise
+
+    def get_pr_files(
+        self,
+        project_id: str,
+        mr_iid: str
+    ) -> List[Dict[str, str]]:
+        """
+        GitLab implementation to get list of files in an MR.
+        """
+        self.logger.info(f"Getting files for MR !{mr_iid} in {project_id}")
+        try:
+            project = self.client.projects.get(project_id)
+            mr = project.mergerequests.get(mr_iid)
+            
+            files = []
+            for change in mr.changes()['changes']:
+                files.append({
+                    'filename': change['new_path'],
+                    'status': change['new_file'] and 'added' or change['deleted_file'] and 'deleted' or 'modified',
+                    'changes': change['diff'].count('\n'),
+                    'additions': change['diff'].count('+ ') - 1,  # Subtract header line
+                    'deletions': change['diff'].count('- ') - 1,  # Subtract header line
+                    'raw_url': f"{project.web_url}/-/raw/{mr.source_branch}/{change['new_path']}"
+                })
+            return files
+        except gitlab.exceptions.GitlabError as e:
+            self.logger.error(f"Failed to get MR files: {str(e)}")
+            raise
+
+
+    def get_current_file(
+        self,
+        project_id: str,
+        branch: str,
+        filename: str
+    ) -> Tuple[str, Optional[str]]:
+        """
+        GitLab implementation to get file content.
+        """
+        self.logger.info(f"Fetching {filename} from {project_id}@{branch}")
+        try:
+            project = self.client.projects.get(project_id)
+            file_content = project.files.get(file_path=filename, ref=branch)
+            return file_content.decode().decode('utf-8'), file_content.id
+        except gitlab.exceptions.GitlabGetError:
+            self.logger.info(f"File {filename} not found")
+            return "", None
+        except Exception as e:
+            self.logger.error(f"Failed to get file: {str(e)}")
+            raise
+
+    def update_file(
+        self,
+        project_id: str,
+        branch: str,
+        filename: str,
+        new_content: str
+    ) -> Dict[str, str]:
+        """
+        GitLab implementation to update/create file.
+        """
+        self.logger.info(f"Updating {filename} on {project_id}@{branch}")
+        try:
+            project = self.client.projects.get(project_id)
+            commit_message = f"Update {filename} via PullHero"
+            
+            current_content, file_id = self.get_current_file(project_id, branch, filename)
+            if file_id:
+                result = project.files.update(
+                    file_path=filename,
+                    branch=branch,
+                    content=new_content,
+                    commit_message=commit_message
+                )
+                self.logger.info(f"File {filename} updated")
+                return {"status": "updated", "sha": result["commit_id"]}
+            else:
+                result = project.files.create({
+                    'file_path': filename,
+                    'branch': branch,
+                    'content': new_content,
+                    'commit_message': f"Create {filename} via PullHero"
+                })
+                self.logger.info(f"File {filename} created")
+                return {"status": "created", "sha": result["commit_id"]}
+        except Exception as e:
+            self.logger.error(f"Failed to update file: {str(e)}")
+            raise
+
+    def update_pr(
+        self,
+        project_id: str,
+        branch: str
+    ) -> Optional[Dict[str, str]]:
+        """
+        GitLab implementation to get MR info from branch.
+        """
+        self.logger.info(f"Checking for MR from {branch} in {project_id}")
+        try:
+            project = self.client.projects.get(project_id)
+            mrs = project.mergerequests.list(
+                state='opened',
+                source_branch=branch
+            )
+            
+            if not mrs:
+                self.logger.info("No open MR found")
+                return None
+            
+            mr = mrs[0]
+            return {
+                "pr_number": str(mr.iid),
+                "pr_url": mr.web_url,
+                "title": mr.title,
+                "state": mr.state
+            }
+        except Exception as e:
+            self.logger.error(f"Failed to get MR info: {str(e)}")
+            raise

@@ -37,7 +37,7 @@ pullhero --vcs-provider github \
          --llm-api-model mistral-large-latest
 ```
 
-## How to run the consult agent
+## How to push the consult agent
 
 ```bash
 pullhero --vcs-provider github \
@@ -48,6 +48,23 @@ pullhero --vcs-provider github \
          --vcs-base-branch whatever \
          --vcs-head-branch whatever \
          --agent consult \
+         --agent-action comment \
+         --llm-api-key 3....et \
+         --llm-api-host api.mistral.ai \
+         --llm-api-model mistral-large-latest
+```
+
+## How to run the code improvement agent
+
+```bash
+pullhero --vcs-provider github \
+         --vcs-token ghp_B...sw \
+         --vcs-repository pullhero/python-client \
+         --vcs-change-id 4 \
+         --vcs-change-type whatever \
+         --vcs-base-branch "main" \
+         --vcs-head-branch "feature_test" \
+         --agent code \
          --agent-action comment \
          --llm-api-key 3....et \
          --llm-api-host api.mistral.ai \

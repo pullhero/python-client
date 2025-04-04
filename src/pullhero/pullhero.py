@@ -183,7 +183,7 @@ def main():
         "llm_api_model": args.llm_api_model
     }
 
-    logging.info(f"PullHero v{pullhero_version}")
+    logging.info(f"PullHero v{__version__}")
 
     if args.agent == "code":
         action_code(**common_params)

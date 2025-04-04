@@ -468,3 +468,154 @@ class GitHubProvider(VCSOperations):
         except Exception as e:
             self.logger.error(f"Failed to fetch issue details: {str(e)}")
             raise
+
+    def get_pr_info_from_comment(
+        self,
+        repo_identifier: str,
+        pr_number: str
+    ) -> Optional[Dict[str, str]]:
+        """
+        GitHub implementation to get PR info from repository and PR number.
+        """
+        self.logger.info(f"Getting PR info for #{pr_number} in {repo_identifier}")
+        try:
+            headers = {
+                "Authorization": f"token {self.token}",
+                "Accept": "application/vnd.github.v3+json",
+            }
+            url = f"https://api.github.com/repos/{repo_identifier}/pulls/{pr_number}"
+            response = requests.get(url, headers=headers)
+
+            if response.status_code != 200:
+                self.logger.error(f"API call failed: {response.status_code}")
+                return None
+
+            pr_data = response.json()
+            return {
+                "pr_number": str(pr_number),
+                "pr_branch": pr_data["head"]["ref"],
+                "base_branch": pr_data["base"]["ref"],
+                "repo_identifier": repo_identifier,
+                "pr_url": pr_data["html_url"],
+                "title": pr_data["title"],
+                "state": pr_data["state"]
+            }
+        except Exception as e:
+            self.logger.error(f"Failed to get PR info: {str(e)}")
+            raise
+
+    def get_pr_files(
+        self,
+        repo_identifier: str,
+        pr_number: str
+    ) -> List[Dict[str, str]]:
+        """
+        GitHub implementation to get list of files in a PR.
+        """
+        self.logger.info(f"Getting files for PR #{pr_number} in {repo_identifier}")
+        try:
+            repo = self.client.get_repo(repo_identifier)
+            pr = repo.get_pull(int(pr_number))
+            
+            files = []
+            for file in pr.get_files():
+                files.append({
+                    'filename': file.filename,
+                    'status': file.status,
+                    'changes': file.changes,
+                    'additions': file.additions,
+                    'deletions': file.deletions,
+                    'raw_url': file.raw_url
+                })
+            return files
+        except Exception as e:
+            self.logger.error(f"Failed to get PR files: {str(e)}")
+            raise
+
+    def get_current_file(
+        self,
+        repo_identifier: str,
+        branch: str,
+        filename: str
+    ) -> Tuple[str, Optional[str]]:
+        """
+        GitHub implementation to get file content.
+        """
+        self.logger.info(f"Fetching {filename} from {repo_identifier}@{branch}")
+        try:
+            repo = self.client.get_repo(repo_identifier)
+            file_content = repo.get_contents(filename, ref=branch)
+            return file_content.decoded_content.decode("utf-8"), file_content.sha
+        except GithubException:
+            self.logger.info(f"File {filename} not found")
+            return "", None
+        except Exception as e:
+            self.logger.error(f"Failed to get file: {str(e)}")
+            raise
+
+    def update_file(
+        self,
+        repo_identifier: str,
+        branch: str,
+        filename: str,
+        new_content: str
+    ) -> Dict[str, str]:
+        """
+        GitHub implementation to update/create file.
+        """
+        self.logger.info(f"Updating {filename} on {repo_identifier}@{branch}")
+        try:
+            repo = self.client.get_repo(repo_identifier)
+            commit_message = f"Update {filename} via PullHero"
+            
+            current_content, sha = self.get_current_file(repo_identifier, branch, filename)
+            if sha:
+                result = repo.update_file(
+                    path=filename,
+                    message=commit_message,
+                    content=new_content,
+                    sha=sha,
+                    branch=branch
+                )
+                self.logger.info(f"File {filename} updated")
+                return {"status": "updated", "sha": result["commit"].sha}
+            else:
+                result = repo.create_file(
+                    path=filename,
+                    message=f"Create {filename} via PullHero",
+                    content=new_content,
+                    branch=branch
+                )
+                self.logger.info(f"File {filename} created")
+                return {"status": "created", "sha": result["commit"].sha}
+        except Exception as e:
+            self.logger.error(f"Failed to update file: {str(e)}")
+            raise
+
+    def update_pr(
+        self,
+        repo_identifier: str,
+        branch: str
+    ) -> Optional[Dict[str, str]]:
+        """
+        GitHub implementation to get PR info from branch.
+        """
+        self.logger.info(f"Checking for PR from {branch} in {repo_identifier}")
+        try:
+            repo = self.client.get_repo(repo_identifier)
+            pulls = repo.get_pulls(state="open", head=f"{repo.owner.login}:{branch}")
+            
+            if pulls.totalCount == 0:
+                self.logger.info("No open PR found")
+                return None
+            
+            pr = pulls[0]
+            return {
+                "pr_number": str(pr.number),
+                "pr_url": pr.html_url,
+                "title": pr.title,
+                "state": pr.state
+            }
+        except Exception as e:
+            self.logger.error(f"Failed to get PR info: {str(e)}")
+            raise

@@ -1,3 +1,4 @@
+```python
 #!/usr/bin/env python
 
 """
@@ -22,23 +23,20 @@ from sys import version_info
 from setuptools import find_packages, setup
 from pullhero.__about__ import __name__ as _NAME, __description__ as _DESCRIPTION, __version__ as _REVISION
 
-
 if version_info < (3, 5):
-    raise RuntimeError(
-        'Python 3.5 or greater is required'
-    )
+    raise RuntimeError('Python 3.5 or greater is required')
 
 pullhero_revision = os.environ.get('PULLHERO_REVISION', "")
 
-if (pullhero_revision != ""):
-    _REVISION = _REVISION + "." + pullhero_revision
+if pullhero_revision:
+    _REVISION += "." + pullhero_revision
 
+long_description = _DESCRIPTION
 if os.path.isfile('../README.md'):
-    with open('../README.md') as f:
+    with open('../README.md', 'r') as f:
         long_description = f.read()
-else:
-    long_description = _DESCRIPTION
-with open('requirements.txt') as f:
+
+with open('requirements.txt', 'r') as f:
     requirements = f.read().splitlines()
 
 setup(
@@ -71,7 +69,8 @@ setup(
     install_requires=requirements,
     entry_points={
         'console_scripts': [
-            '{0} = {0}.pullhero:main'.format(_NAME),
+            f'{_NAME} = {_NAME}.pullhero:main',
         ]
     }
 )
+```

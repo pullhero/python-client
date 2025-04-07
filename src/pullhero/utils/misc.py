@@ -28,6 +28,7 @@ from gitingest import ingest
 import pygit2
 from typing import Tuple, Optional
 from pathlib import Path
+from pullhero.__about__ import __version__
 
 def setup_logging():
     logging.basicConfig(
@@ -58,7 +59,7 @@ $$ |      \$$$$$$  |$$$$$$$$\ $$$$$$$$\ $$ |  $$ |$$$$$$$$\ $$ |  $$ | $$$$$$  |
     \ //  \|  ||__)    /\ / _`|__ |\ |||/  `    /\ /__`/__`|/__`| /\ |\ ||
      | \__/\__/|  \   /~~\\\\__>|___| \|||\__,   /~~\.__/.__/|.__/|/~~\| \||
 
-v{get_version()}
+v{__version__}
 """
     return banner
 

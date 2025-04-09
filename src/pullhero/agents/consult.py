@@ -17,14 +17,18 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from pullhero.vcs.base import VCSOperations
-from pullhero.utils.misc import call_ai_api, setup_logging, clone_repo_with_token, ingest_repository
+from pullhero.utils.misc import (
+    call_ai_api,
+    setup_logging,
+    clone_repo_with_token,
+    ingest_repository,
+)
 import logging
 import sys
-import random
-import string
 
 
 setup_logging()
+
 
 def action_consult(
     vcs_provider: str,
@@ -38,7 +42,7 @@ def action_consult(
     agent_action: str,
     llm_api_key: str,
     llm_api_host: str,
-    llm_api_model: str
+    llm_api_model: str,
 ) -> None:
 
     label_to_parse = "consult"
@@ -56,15 +60,20 @@ def action_consult(
         provider = VCSOperations.from_provider(vcs_provider, vcs_token)
 
         # Clone and analyze repository
-        repo_url = f"https://github.com/{vcs_repository}" if vcs_provider == "github" \
-                  else f"https://gitlab.com/{vcs_repository}"
-        
+        repo_url = (
+            f"https://github.com/{vcs_repository}"
+            if vcs_provider == "github"
+            else f"https://gitlab.com/{vcs_repository}"
+        )
+
         logging.info(f"Cloning repository from {repo_url}")
         clone_repo_with_token(repo_url, vcs_token)
-        
+
         logging.info("Analyzing repository content")
         summary, tree, repo_content = ingest_repository("/tmp/clone")
-        logging.debug(f"Repository analysis complete - {len(repo_content.splitlines())} lines of content")
+        logging.debug(
+            f"Repository analysis complete - {len(repo_content.splitlines())} lines of content"
+        )
 
         # Generate and submit prompt
         logging.info("Generating consult prompts")
@@ -73,20 +82,28 @@ def action_consult(
         for issue in issues:
             issue_details = provider.get_issue_details(
                 repo_identifier=vcs_repository,  # GitHub: "owner/repo", GitLab: "namespace/project"
-                issue_id=issue['number']                # GitHub: issue number, GitLab: issue IID
+                issue_id=issue["number"],  # GitHub: issue number, GitLab: issue IID
             )
-            comments = provider.get_issue_comments(vcs_repository, str(issue['number']))
+            comments = provider.get_issue_comments(vcs_repository, str(issue["number"]))
 
-            prompt = get_prompt(repo_content, issue_details['title'], issue_details['body'], comments)
+            prompt = get_prompt(
+                repo_content, issue_details["title"], issue_details["body"], comments
+            )
 
             logging.debug(f"Prompt generated with {len(prompt.splitlines())} lines")
 
             logging.info(f"Calling AI API ({llm_api_model}) for review generation")
             try:
-                consult_result = call_ai_api(llm_api_host, llm_api_key, llm_api_model, prompt)
-                provider.post_comment(vcs_repository, str(issue['number']), consult_result, "issue")
+                consult_result = call_ai_api(
+                    llm_api_host, llm_api_key, llm_api_model, prompt
+                )
+                provider.post_comment(
+                    vcs_repository, str(issue["number"]), consult_result, "issue"
+                )
                 logging.info("Comment posted successfully")
-                provider.remove_label_from_issue(vcs_repository, str(issue['number']), label_to_parse)
+                provider.remove_label_from_issue(
+                    vcs_repository, str(issue["number"]), label_to_parse
+                )
             except Exception as e:
                 logging.error("AI API call failed: %s", e)
                 sys.exit(1)
@@ -98,7 +115,9 @@ def action_consult(
         raise
 
 
-def get_prompt(repo_content: str, issue_title: str, issue_body: str, issue_comments: str) -> str:
+def get_prompt(
+    repo_content: str, issue_title: str, issue_body: str, issue_comments: str
+) -> str:
 
     logging.info("Constructing AI review prompt")
 

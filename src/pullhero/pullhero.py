@@ -34,12 +34,13 @@ import sys
 
 from pkg_resources import get_distribution
 
+
 class JsonVersionAction(Action):
     def __init__(self, option_strings, dest, **kwargs):
         super().__init__(option_strings, dest, nargs=0, **kwargs)
-    
+
     def __call__(self, parser, namespace, values, option_string=None):
-        dist = get_distribution('pullhero')
+        dist = get_distribution("pullhero")
         version_info = {
             "name": __name__,
             "description": __description__,
@@ -47,6 +48,7 @@ class JsonVersionAction(Action):
         }
         print(json.dumps(version_info, indent=2))
         sys.exit(0)
+
 
 def main():
     """
@@ -61,19 +63,18 @@ def main():
     # First stage: Only parse banner/version
     base_parser = ArgumentParser(add_help=False)
     base_parser.add_argument(
-        '-b', '--banner',
-        action='store_true',
-        help="Print PullHero's banner"
+        "-b", "--banner", action="store_true", help="Print PullHero's banner"
     )
     base_parser.add_argument(
-        '-v', '--version',
+        "-v",
+        "--version",
         action=JsonVersionAction,
-        help="Show PullHero's version in a JSON object"
+        help="Show PullHero's version in a JSON object",
     )
-    
+
     # Parse known args first to check for early-exit options
     args, _ = base_parser.parse_known_args()
-    
+
     if args.banner:
         print(get_banner())
         return  # Exit after handling banner
@@ -89,43 +90,43 @@ def main():
         "--vcs-provider",
         required=not os.environ.get("VCS_PROVIDER"),
         default=os.environ.get("VCS_PROVIDER"),
-        help="VCS Provider"
+        help="VCS Provider",
     )
     parser.add_argument(
         "--vcs-token",
         required=not os.environ.get("VCS_TOKEN"),
         default=os.environ.get("VCS_TOKEN"),
-        help="VCS Token"
+        help="VCS Token",
     )
     parser.add_argument(
         "--vcs-repository",
         required=not os.environ.get("VCS_REPOSITORY"),
         default=os.environ.get("VCS_REPOSITORY"),
-        help="VCS Repository"
+        help="VCS Repository",
     )
     parser.add_argument(
         "--vcs-change-id",
         required=not os.environ.get("VCS_CHANGE_ID"),
         default=os.environ.get("VCS_CHANGE_ID"),
-        help="VCS change, this can be the ID of a PR or an issue"
+        help="VCS change, this can be the ID of a PR or an issue",
     )
     parser.add_argument(
         "--vcs-change-type",
         required=not os.environ.get("VCS_CHANGE_TYPE"),
         default=os.environ.get("VCS_CHANGE_TYPE"),
-        help="VCS change type, this can be the an issue, pr, mr..."
+        help="VCS change type, this can be the an issue, pr, mr...",
     )
     parser.add_argument(
         "--vcs-base-branch",
         required=not os.environ.get("VCS_BASE_BRANCH"),
         default=os.environ.get("VCS_BASE_BRANCH"),
-        help="VCS base branch"
+        help="VCS base branch",
     )
     parser.add_argument(
         "--vcs-head-branch",
         required=not os.environ.get("VCS_HEAD_BRANCH"),
         default=os.environ.get("VCS_HEAD_BRANCH"),
-        help="VCS head branch"
+        help="VCS head branch",
     )
 
     # Specific to PullHero (How to interact with the agents)
@@ -149,7 +150,7 @@ def main():
         "--llm-api-key",
         required=not os.environ.get("LLM_API_KEY"),
         default=os.environ.get("LLM_API_KEY"),
-        help="AI API Key"
+        help="AI API Key",
     )
     parser.add_argument(
         "--llm-api-host",
@@ -174,13 +175,11 @@ def main():
         "vcs_change_type": args.vcs_change_type,
         "vcs_base_branch": args.vcs_base_branch,
         "vcs_head_branch": args.vcs_head_branch,
-
         "agent": args.agent,
         "agent_action": args.agent_action,
-
         "llm_api_key": args.llm_api_key,
         "llm_api_host": args.llm_api_host,
-        "llm_api_model": args.llm_api_model
+        "llm_api_model": args.llm_api_model,
     }
 
     logging.info(f"PullHero v{__version__}")

@@ -44,7 +44,7 @@ jobs:
             });
 
             const targetBranches = branches.filter(branch => branch.name.endsWith("-pullhero-improvements"));
-            
+
             for (const branch of targetBranches) {
               const branchName = branch.name;
               console.log(`Checking branch: ${branchName}`);

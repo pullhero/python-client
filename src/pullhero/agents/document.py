@@ -17,7 +17,12 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from pullhero.vcs.base import VCSOperations
-from pullhero.utils.misc import call_ai_api, setup_logging, clone_repo_with_token, ingest_repository
+from pullhero.utils.misc import (
+    call_ai_api,
+    setup_logging,
+    clone_repo_with_token,
+    ingest_repository,
+)
 import logging
 import sys
 import random
@@ -25,6 +30,7 @@ import string
 
 
 setup_logging()
+
 
 def action_document(
     vcs_provider: str,
@@ -38,7 +44,7 @@ def action_document(
     agent_action: str,
     llm_api_key: str,
     llm_api_host: str,
-    llm_api_model: str
+    llm_api_model: str,
 ) -> None:
 
     logging.info(f"Starting document action for {vcs_repository} PR/MR {vcs_change_id}")
@@ -54,21 +60,28 @@ def action_document(
         logging.info(f"Initializing {vcs_provider} provider")
         provider = VCSOperations.from_provider(vcs_provider, vcs_token)
 
-        prefix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=5))
+        prefix = "".join(random.choices(string.ascii_lowercase + string.digits, k=5))
         update_branch = f"{prefix}-pullhero-improvements"
 
-        current_readme_content, _ = provider.get_current_readme(f"{vcs_repository}", vcs_base_branch)
+        current_readme_content, _ = provider.get_current_readme(
+            f"{vcs_repository}", vcs_base_branch
+        )
 
         # Clone and analyze repository
-        repo_url = f"https://github.com/{vcs_repository}" if vcs_provider == "github" \
-                  else f"https://gitlab.com/{vcs_repository}"
-        
+        repo_url = (
+            f"https://github.com/{vcs_repository}"
+            if vcs_provider == "github"
+            else f"https://gitlab.com/{vcs_repository}"
+        )
+
         logging.info(f"Cloning repository from {repo_url}")
         clone_repo_with_token(repo_url, vcs_token)
-        
+
         logging.info("Analyzing repository content")
         summary, tree, content = ingest_repository("/tmp/clone")
-        logging.debug(f"Repository analysis complete - {len(content.splitlines())} lines of content")
+        logging.debug(
+            f"Repository analysis complete - {len(content.splitlines())} lines of content"
+        )
 
         # Generate and submit prompt
         logging.info("Generating review prompt")
@@ -84,10 +97,10 @@ def action_document(
 
         logging.info("AI docs generation completed successfully")
 
-
-
         # Create or update the update-readme branch
-        provider.create_or_update_branch(f"{vcs_repository}", update_branch, vcs_base_branch)
+        provider.create_or_update_branch(
+            f"{vcs_repository}", update_branch, vcs_base_branch
+        )
 
         # Update or create the README.md file on the update branch
         provider.update_readme_file(f"{vcs_repository}", update_branch, new_readme)
@@ -101,20 +114,14 @@ def action_document(
             "Please review the changes and let us know if further adjustments are needed."
         )
         provider.create_or_update_pr(
-            f"{vcs_repository}",
-            update_branch,
-            vcs_base_branch,
-            pr_title,
-            pr_body
+            f"{vcs_repository}", update_branch, vcs_base_branch, pr_title, pr_body
         )
 
         logging.info("README update process completed successfully.")
 
-
     except Exception as e:
         logging.error(f"Failed to complete document action: {str(e)}")
         raise
-
 
 
 def get_prompt(content: str, current_readme_content: str) -> str:

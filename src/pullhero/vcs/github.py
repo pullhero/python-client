@@ -132,13 +132,14 @@ class GitHubProvider(VCSOperations):
             repo = self.client.get_repo(repo_identifier)
             
             if target_type == "pr":
-                target = repo.get_pull(int(target_id))
+                # For PRs, use create_issue_comment() instead of create_comment()
+                target = repo.get_issue(int(target_id))  # Note: Using get_issue for PR comments
+                comment = target.create_comment(body)
             elif target_type == "issue":
                 target = repo.get_issue(int(target_id))
+                comment = target.create_comment(body)
             else:
                 raise ValueError(f"Invalid target_type: {target_type}")
-
-            comment = target.create_comment(body)
             
             self.logger.info(f"Successfully posted comment with ID {comment.id}")
             return {

@@ -147,7 +147,7 @@ def action_review(
                 error_msg = "PR ID required for comments"
                 logging.error(error_msg)
                 raise ValueError(error_msg)
-            provider.post_comment(vcs_repository, int(vcs_change_id), comment_text)
+            provider.post_comment(vcs_repository, int(vcs_change_id), comment_text, "pr")
             logging.info("Comment posted successfully")
 
         elif agent_action == "review":

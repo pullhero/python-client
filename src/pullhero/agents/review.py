@@ -17,11 +17,16 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from pullhero.vcs.base import VCSOperations
-from pullhero.utils.misc import call_ai_api, setup_logging, clone_repo_with_token, ingest_repository
+from pullhero.utils.misc import (
+    call_ai_api,
+    setup_logging,
+    clone_repo_with_token,
+    ingest_repository,
+)
 import logging
-import sys
 
 setup_logging()
+
 
 def action_review(
     vcs_provider: str,
@@ -35,7 +40,7 @@ def action_review(
     agent_action: str,
     llm_api_key: str,
     llm_api_host: str,
-    llm_api_model: str
+    llm_api_model: str,
 ) -> None:
     """
     Perform a code review action on a VCS pull/merge request using an LLM-powered agent.
@@ -124,11 +129,13 @@ def action_review(
             vcs_change_id=vcs_change_id,
             llm_api_key=llm_api_key,
             llm_api_host=llm_api_host,
-            llm_api_model=llm_api_model
+            llm_api_model=llm_api_model,
         )
 
         # Determine review vote
-        vote = "+1" if "+1" in review_payload else "-1" if "-1" in review_payload else "0"
+        vote = (
+            "+1" if "+1" in review_payload else "-1" if "-1" in review_payload else "0"
+        )
         logging.info(f"Determined review vote: {vote}")
 
         # Construct review comment
@@ -147,7 +154,9 @@ def action_review(
                 error_msg = "PR ID required for comments"
                 logging.error(error_msg)
                 raise ValueError(error_msg)
-            provider.post_comment(vcs_repository, int(vcs_change_id), comment_text, "pr")
+            provider.post_comment(
+                vcs_repository, int(vcs_change_id), comment_text, "pr"
+            )
             logging.info("Comment posted successfully")
 
         elif agent_action == "review":
@@ -159,26 +168,16 @@ def action_review(
 
             if vote == "+1":
                 provider.submit_review(
-                    vcs_repository,
-                    int(vcs_change_id),
-                    comment_text,
-                    approve=True
+                    vcs_repository, int(vcs_change_id), comment_text, approve=True
                 )
                 logging.info("Approved review submitted")
             elif vote == "-1":
                 provider.submit_review(
-                    vcs_repository,
-                    int(vcs_change_id),
-                    comment_text,
-                    approve=False
+                    vcs_repository, int(vcs_change_id), comment_text, approve=False
                 )
                 logging.info("Review submitted requesting changes")
             else:
-                provider.submit_review(
-                    vcs_repository,
-                    int(vcs_change_id),
-                    comment_text
-                )
+                provider.submit_review(vcs_repository, int(vcs_change_id), comment_text)
                 logging.info("Neutral review comment submitted")
 
         else:
@@ -200,7 +199,7 @@ def get_review(
     vcs_change_id: str,
     llm_api_key: str,
     llm_api_host: str,
-    llm_api_model: str
+    llm_api_model: str,
 ) -> str:
     """
     Retrieves an AI-generated code review for a given pull/merge request.
@@ -254,7 +253,9 @@ def get_review(
     ...     llm_api_model="gpt-4"
     ... )
     """
-    logging.info(f"Starting review generation for {vcs_repository} PR/MR {vcs_change_id}")
+    logging.info(
+        f"Starting review generation for {vcs_repository} PR/MR {vcs_change_id}"
+    )
 
     # Validate inputs
     if not all([vcs_provider, vcs_token, vcs_repository, vcs_change_id]):
@@ -266,21 +267,26 @@ def get_review(
         # Initialize provider and get diff
         logging.info(f"Initializing {vcs_provider} provider")
         provider = VCSOperations.from_provider(vcs_provider, vcs_token)
-        
+
         logging.info(f"Fetching diff for PR/MR {vcs_change_id}")
         diff = provider.get_pr_diff(vcs_repository, vcs_change_id)
         logging.debug(f"Retrieved diff with {len(diff.splitlines())} lines")
 
         # Clone and analyze repository
-        repo_url = f"https://github.com/{vcs_repository}" if vcs_provider == "github" \
-                  else f"https://gitlab.com/{vcs_repository}"
-        
+        repo_url = (
+            f"https://github.com/{vcs_repository}"
+            if vcs_provider == "github"
+            else f"https://gitlab.com/{vcs_repository}"
+        )
+
         logging.info(f"Cloning repository from {repo_url}")
         clone_repo_with_token(repo_url, vcs_token)
-        
+
         logging.info("Analyzing repository content")
         summary, tree, content = ingest_repository("/tmp/clone")
-        logging.debug(f"Repository analysis complete - {len(content.splitlines())} lines of content")
+        logging.debug(
+            f"Repository analysis complete - {len(content.splitlines())} lines of content"
+        )
 
         # Generate and submit prompt
         logging.info("Generating review prompt")
@@ -296,6 +302,7 @@ def get_review(
     except Exception as e:
         logging.error(f"Review generation failed: {str(e)}")
         raise
+
 
 def get_prompt(content: str, diff: str) -> str:
     """

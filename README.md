@@ -2,7 +2,6 @@
 
 This the pullhero python client.
 
-
 ## How to push a code review
 
 ```bash

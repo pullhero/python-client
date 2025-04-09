@@ -19,16 +19,14 @@
 import sys
 import os
 import shutil
-import json
 import logging
-import argparse
 import requests
-import sys
 from gitingest import ingest
 import pygit2
 from typing import Tuple, Optional
 from pathlib import Path
 from pullhero.__about__ import __version__
+
 
 def setup_logging():
     logging.basicConfig(
@@ -36,6 +34,7 @@ def setup_logging():
         format="%(asctime)s - %(levelname)s - %(message)s",
         handlers=[logging.StreamHandler(sys.stdout)],
     )
+
 
 def get_banner():
     """
@@ -47,8 +46,8 @@ def get_banner():
     # Big Money-nw
     # JS Stick Letters
     banner = f"""
-$$$$$$$\  $$\   $$\ $$\       $$\       $$\   $$\ $$$$$$$$\ $$$$$$$\   $$$$$$\ 
-$$  __$$\ $$ |  $$ |$$ |      $$ |      $$ |  $$ |$$  _____|$$  __$$\ $$  __$$\ 
+$$$$$$$\  $$\   $$\ $$\       $$\       $$\   $$\ $$$$$$$$\ $$$$$$$\   $$$$$$\
+$$  __$$\ $$ |  $$ |$$ |      $$ |      $$ |  $$ |$$  _____|$$  __$$\ $$  __$$\
 $$ |  $$ |$$ |  $$ |$$ |      $$ |      $$ |  $$ |$$ |      $$ |  $$ |$$ /  $$ |
 $$$$$$$  |$$ |  $$ |$$ |      $$ |      $$$$$$$$ |$$$$$\    $$$$$$$  |$$ |  $$ |
 $$  ____/ $$ |  $$ |$$ |      $$ |      $$  __$$ |$$  __|   $$  __$$< $$ |  $$ |
@@ -63,9 +62,11 @@ v{__version__}
 """
     return banner
 
+
 #
 # THis is external because is not specific to a VCS we will just clone a Git repo (private or public)
 #
+
 
 def clone_repo_with_token(repo_url: str, vcs_token: str) -> None:
     """
@@ -108,21 +109,19 @@ def clone_repo_with_token(repo_url: str, vcs_token: str) -> None:
     logger.info(f"Starting repository clone from {repo_url}")
 
     def credentials_callback(
-        url: str, 
-        username_from_url: Optional[str], 
-        allowed_types: int
+        url: str, username_from_url: Optional[str], allowed_types: int
     ) -> pygit2.UserPass:
         """
         Authentication callback for pygit2 clone operation.
-        
+
         Args:
             url: Repository URL being accessed
             username_from_url: Username extracted from URL (if any)
             allowed_types: Bitmask of allowed credential types
-            
+
         Returns:
             Configured UserPass credentials object
-            
+
         Raises:
             ValueError: If no token is provided
         """
@@ -134,30 +133,24 @@ def clone_repo_with_token(repo_url: str, vcs_token: str) -> None:
 
     try:
         clone_dir = "/tmp/clone"
-        
+
         # Clean up existing directory if present
         if os.path.exists(clone_dir):
             logger.info(f"Removing existing directory: {clone_dir}")
             shutil.rmtree(clone_dir)
-        
+
         # Create fresh directory
         logger.info(f"Creating clean directory: {clone_dir}")
         os.makedirs(clone_dir, exist_ok=True)
-        
+
         # Configure clone options
         logger.debug("Configuring clone options with authentication")
-        callbacks = pygit2.RemoteCallbacks(
-            credentials=credentials_callback
-        )
-        
+        callbacks = pygit2.RemoteCallbacks(credentials=credentials_callback)
+
         # Perform clone
         logger.info(f"Cloning repository to {clone_dir}")
-        pygit2.clone_repository(
-            url=repo_url,
-            path=clone_dir,
-            callbacks=callbacks
-        )
-        
+        pygit2.clone_repository(url=repo_url, path=clone_dir, callbacks=callbacks)
+
         logger.info(f"Successfully cloned repository to {clone_dir}")
 
     except pygit2.GitError as ge:
@@ -169,6 +162,7 @@ def clone_repo_with_token(repo_url: str, vcs_token: str) -> None:
     except Exception as e:
         logger.error(f"Unexpected error during clone: {str(e)}")
         raise
+
 
 def ingest_repository(local_repo_path: str) -> Tuple[str, str, str]:
     """
@@ -214,21 +208,21 @@ def ingest_repository(local_repo_path: str) -> Tuple[str, str, str]:
             error_msg = f"Repository path does not exist: {abs_path}"
             logger.error(error_msg)
             raise ValueError(error_msg)
-        
+
         if not abs_path.is_dir():
             error_msg = f"Path is not a directory: {abs_path}"
             logger.error(error_msg)
             raise ValueError(error_msg)
 
         logger.info(f"Processing repository at {abs_path}")
-        
+
         # Perform ingestion (assuming ingest() is defined elsewhere)
         summary, tree, content = ingest(str(abs_path))
-        
+
         logger.info(f"Ingestion complete - {len(content)} files processed")
         logger.debug(f"Summary: {summary[:100]}...")
         logger.debug(f"Tree structure: {str(tree)[:200]}...")
-        
+
         return summary, tree, content
 
     except Exception as e:
@@ -237,11 +231,7 @@ def ingest_repository(local_repo_path: str) -> Tuple[str, str, str]:
 
 
 def call_ai_api(
-    api_host: str,
-    api_key: str,
-    api_model: str,
-    prompt: str,
-    timeout: int = 120
+    api_host: str, api_key: str, api_model: str, prompt: str, timeout: int = 120
 ) -> str:
     """
     Make an API call to an AI service for code review analysis.
@@ -297,34 +287,31 @@ def call_ai_api(
             "model": api_model,
             "messages": [{"role": "user", "content": prompt}],
             "max_tokens": 1000,
-            "temperature": 0.7
+            "temperature": 0.7,
         }
         headers = {
             "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
 
         logger.debug(f"Sending request to {url}")
         logger.debug(f"Payload size: {len(prompt)} characters")
-        
-        response = requests.post(
-            url,
-            json=payload,
-            headers=headers,
-            timeout=timeout
-        )
+
+        response = requests.post(url, json=payload, headers=headers, timeout=timeout)
         response.raise_for_status()
 
         data = response.json()
         result = data["choices"][0]["message"]["content"]
-        
+
         logger.info("AI API call successful")
         logger.debug(f"Response length: {len(result)} characters")
-        
+
         return result
 
     except requests.HTTPError as he:
-        logger.error(f"API request failed: {he.response.status_code} - {he.response.text}")
+        logger.error(
+            f"API request failed: {he.response.status_code} - {he.response.text}"
+        )
         raise
     except requests.Timeout:
         logger.error("API request timed out")

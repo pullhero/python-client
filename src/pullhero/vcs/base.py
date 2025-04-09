@@ -20,6 +20,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Dict, Tuple, Literal, List
 import logging
 
+
 class VCSOperations(ABC):
     """
     Abstract Base Class defining Version Control System operations interface.
@@ -52,13 +53,7 @@ class VCSOperations(ABC):
         self.logger.info("Initializing VCS provider")
 
     @abstractmethod
-    def create_pr(
-        self,
-        title: str,
-        body: str,
-        base: str,
-        head: str
-    ) -> Dict[str, str]:
+    def create_pr(self, title: str, body: str, base: str, head: str) -> Dict[str, str]:
         """
         Create a new pull/merge request.
 
@@ -84,7 +79,7 @@ class VCSOperations(ABC):
         repo_identifier: str,
         target_id: str,
         body: str,
-        target_type: Literal["pr", "issue"] = "pr"
+        target_type: Literal["pr", "issue"] = "pr",
     ) -> Dict[str, str]:
         """
         Post a comment on a Pull Request or Issue.
@@ -108,10 +103,7 @@ class VCSOperations(ABC):
 
     @abstractmethod
     def submit_review(
-        self,
-        pr_id: str,
-        comment: str,
-        approve: bool = False
+        self, pr_id: str, comment: str, approve: bool = False
     ) -> Dict[str, str]:
         """
         Submit a formal review for a pull/merge request.
@@ -133,11 +125,7 @@ class VCSOperations(ABC):
         pass
 
     @abstractmethod
-    def get_pr_diff(
-        self,
-        repo_identifier: str,
-        pr_id: str
-    ) -> str:
+    def get_pr_diff(self, repo_identifier: str, pr_id: str) -> str:
         """
         Retrieve the unified diff for a pull/merge request.
 
@@ -156,9 +144,7 @@ class VCSOperations(ABC):
 
     @abstractmethod
     def get_current_readme(
-        self,
-        repo_identifier: str,
-        branch: str
+        self, repo_identifier: str, branch: str
     ) -> Tuple[str, Optional[str]]:
         """
         Fetch the current README.md content from the given branch, if it exists.
@@ -176,10 +162,7 @@ class VCSOperations(ABC):
 
     @abstractmethod
     def create_or_update_branch(
-        self,
-        repo_identifier: str,
-        branch_name: str,
-        base_branch: str
+        self, repo_identifier: str, branch_name: str, base_branch: str
     ) -> Dict[str, str]:
         """
         Create the branch if it doesn't exist, otherwise return the branch reference.
@@ -198,10 +181,7 @@ class VCSOperations(ABC):
 
     @abstractmethod
     def update_readme_file(
-        self,
-        repo_identifier: str,
-        branch: str,
-        new_content: str
+        self, repo_identifier: str, branch: str, new_content: str
     ) -> Dict[str, str]:
         """
         Update or create the README.md file on the given branch.
@@ -225,7 +205,7 @@ class VCSOperations(ABC):
         branch: str,
         base_branch: str,
         pr_title: str,
-        pr_body: str
+        pr_body: str,
     ) -> Dict[str, str]:
         """
         Create a new pull request or update an existing one from the branch.
@@ -246,11 +226,7 @@ class VCSOperations(ABC):
         pass
 
     @abstractmethod
-    def get_issues_with_label(
-        self,
-        repo_identifier: str,
-        label: str
-    ) -> List[Dict]:
+    def get_issues_with_label(self, repo_identifier: str, label: str) -> List[Dict]:
         """
         Retrieve all issues with a specific label.
 
@@ -268,11 +244,7 @@ class VCSOperations(ABC):
         pass
 
     @abstractmethod
-    def get_issue_comments(
-        self,
-        repo_identifier: str,
-        issue_id: str
-    ) -> List[Dict]:
+    def get_issue_comments(self, repo_identifier: str, issue_id: str) -> List[Dict]:
         """
         Retrieve all comments for a specific issue.
 
@@ -291,10 +263,7 @@ class VCSOperations(ABC):
 
     @abstractmethod
     def remove_label_from_issue(
-        self,
-        repo_identifier: str,
-        issue_number: str,
-        label: str
+        self, repo_identifier: str, issue_number: str, label: str
     ) -> bool:
         """
         Remove a label from a specific issue.
@@ -314,11 +283,7 @@ class VCSOperations(ABC):
         pass
 
     @abstractmethod
-    def get_issue_details(
-        self,
-        repo_identifier: str,
-        issue_id: str
-    ) -> Dict[str, str]:
+    def get_issue_details(self, repo_identifier: str, issue_id: str) -> Dict[str, str]:
         """
         Retrieve the title and body of a specific issue.
 
@@ -338,12 +303,9 @@ class VCSOperations(ABC):
         """
         pass
 
-
     @abstractmethod
     def get_pr_info_from_comment(
-        self,
-        repo_identifier: str,
-        pr_number: str
+        self, repo_identifier: str, pr_number: str
     ) -> Optional[Dict[str, str]]:
         """
         Get PR/MR information from repository and PR number.
@@ -367,9 +329,7 @@ class VCSOperations(ABC):
 
     @abstractmethod
     def get_pr_files(
-        self,
-        repo_identifier: str,
-        pr_number: str
+        self, repo_identifier: str, pr_number: str
     ) -> List[Dict[str, str]]:
         """
         Get list of files modified in a PR/MR.
@@ -390,10 +350,7 @@ class VCSOperations(ABC):
 
     @abstractmethod
     def get_current_file(
-        self,
-        repo_identifier: str,
-        branch: str,
-        filename: str
+        self, repo_identifier: str, branch: str, filename: str
     ) -> Tuple[str, Optional[str]]:
         """
         Fetch the current file content from the given branch.
@@ -410,11 +367,7 @@ class VCSOperations(ABC):
 
     @abstractmethod
     def update_file(
-        self,
-        repo_identifier: str,
-        branch: str,
-        filename: str,
-        new_content: str
+        self, repo_identifier: str, branch: str, filename: str, new_content: str
     ) -> Dict[str, str]:
         """
         Update or create a file on the given branch.
@@ -431,11 +384,7 @@ class VCSOperations(ABC):
         pass
 
     @abstractmethod
-    def update_pr(
-        self,
-        repo_identifier: str,
-        branch: str
-    ) -> Dict[str, str]:
+    def update_pr(self, repo_identifier: str, branch: str) -> Dict[str, str]:
         """
         Get information about an existing PR from a branch.
 
@@ -450,10 +399,8 @@ class VCSOperations(ABC):
 
     @classmethod
     def from_provider(
-        cls,
-        provider: Literal["github", "gitlab"],
-        token: Optional[str] = None
-    ) -> 'VCSOperations':
+        cls, provider: Literal["github", "gitlab"], token: Optional[str] = None
+    ) -> "VCSOperations":
         """
         Factory method to instantiate the appropriate VCS provider.
 
@@ -474,10 +421,7 @@ class VCSOperations(ABC):
         logger = logging.getLogger("VCSFactory")
         logger.info(f"Initializing {provider} provider")
 
-        providers = {
-            "github": "GitHubProvider",
-            "gitlab": "GitLabProvider"
-        }
+        providers = {"github": "GitHubProvider", "gitlab": "GitLabProvider"}
 
         if provider not in providers:
             error_msg = f"Unsupported provider: {provider}"
@@ -487,10 +431,12 @@ class VCSOperations(ABC):
         try:
             if provider == "github":
                 from pullhero.vcs.github import GitHubProvider
+
                 logger.debug("Successfully imported GitHub provider")
                 return GitHubProvider(token)
             elif provider == "gitlab":
                 from pullhero.vcs.gitlab import GitLabProvider
+
                 logger.debug("Successfully imported GitLab provider")
                 return GitLabProvider(token)
         except ImportError as ie:

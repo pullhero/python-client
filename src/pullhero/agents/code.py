@@ -17,15 +17,19 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from pullhero.vcs.base import VCSOperations
-from pullhero.utils.misc import call_ai_api, setup_logging, clone_repo_with_token, ingest_repository
+from pullhero.utils.misc import (
+    call_ai_api,
+    setup_logging,
+    clone_repo_with_token,
+    ingest_repository,
+)
 import logging
 import sys
-import random
-import string
 from pathlib import Path
 
 
 setup_logging()
+
 
 def action_code(
     vcs_provider: str,
@@ -39,7 +43,7 @@ def action_code(
     agent_action: str,
     llm_api_key: str,
     llm_api_host: str,
-    llm_api_model: str
+    llm_api_model: str,
 ) -> None:
 
     logging.info(f"Starting code action for {vcs_repository} PR/MR {vcs_change_id}")
@@ -61,18 +65,23 @@ def action_code(
 
         improvements_branch = f"{pr_branch}-pullhero-improvements"
 
-        #current_readme_content, _ = provider.get_current_readme(f"{vcs_repository}", vcs_base_branch)
+        # current_readme_content, _ = provider.get_current_readme(f"{vcs_repository}", vcs_base_branch)
 
         # Clone and analyze repository
-        repo_url = f"https://github.com/{vcs_repository}" if vcs_provider == "github" \
-                  else f"https://gitlab.com/{vcs_repository}"
-        
+        repo_url = (
+            f"https://github.com/{vcs_repository}"
+            if vcs_provider == "github"
+            else f"https://gitlab.com/{vcs_repository}"
+        )
+
         logging.info(f"Cloning repository from {repo_url}")
         clone_repo_with_token(repo_url, vcs_token)
-        
+
         logging.info("Analyzing repository content")
         summary, tree, content = ingest_repository(local_repo_path)
-        logging.debug(f"Repository analysis complete - {len(content.splitlines())} lines of content")
+        logging.debug(
+            f"Repository analysis complete - {len(content.splitlines())} lines of content"
+        )
         context = content  # You might also combine tree/summary if needed.
 
         pr_title = f"PullHero Code Improvements for PR #{pr_number}"
@@ -94,7 +103,6 @@ If you approve these changes, you can merge this PR into your original branch.
 *Generated automatically by PullHero*
 """
 
-
         # Create the improvements PR targeting the original PR branch
         logging.info(f"Creating the improvement branch {improvements_branch}")
         provider.create_or_update_branch(vcs_repository, improvements_branch, pr_branch)
@@ -114,21 +122,23 @@ If you approve these changes, you can merge this PR into your original branch.
 
         files = provider.get_pr_files(
             repo_identifier=vcs_repository,  # "namespace/project" for GitLab
-            pr_number=str(pr_number)               # PR number for GitHub, MR IID for GitLab
+            pr_number=str(pr_number),  # PR number for GitHub, MR IID for GitLab
         )
 
         for file in files:
             logging.info(f"Parsing: {file}/")
-            filename = file['filename']
+            filename = file["filename"]
 
             if (Path(filename).suffix.lower() not in extensions) or (filename in skip):
                 continue
 
-            current_file_content, _ = provider.get_current_file(vcs_repository, pr_branch, filename)
+            current_file_content, _ = provider.get_current_file(
+                vcs_repository, pr_branch, filename
+            )
 
             if "task" in config and config["task"]:
                 # TODO:FIXME: Key does not exists
-                logging.info(f"Task found")
+                logging.info("Task found")
                 logging.info("Found local task")
                 prompt_template = config["task"]
 
@@ -138,7 +148,7 @@ If you approve these changes, you can merge this PR into your original branch.
                 )
 
             else:
-                logging.info(f"Task not found")
+                logging.info("Task not found")
                 # Default prompt
                 prompt = f"""Code Improvement Task:
 You are a specialized code improvement agent. Your sole purpose is to optimize, fix, and enhance code files. Based on the repository context and file provided below, improve the code in the file by:
@@ -194,16 +204,16 @@ Your entire response must be ONLY the improved code file, with no preamble, expl
                 sys.exit(1)
 
             # Update the file on the branch with the LLM response
-            provider.update_file(vcs_repository, improvements_branch, filename, new_content)
+            provider.update_file(
+                vcs_repository, improvements_branch, filename, new_content
+            )
 
             # Update the current pull request
-            provider.create_or_update_pr(vcs_repository, improvements_branch, pr_branch, pr_title, pr_body)
+            provider.create_or_update_pr(
+                vcs_repository, improvements_branch, pr_branch, pr_title, pr_body
+            )
 
             logging.info(f"{filename} update process completed successfully.")
-
-
-
-
 
     except Exception as e:
         logging.error(f"Failed to complete code action: {str(e)}")

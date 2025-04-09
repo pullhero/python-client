@@ -1,4 +1,4 @@
-twine
-setuptools
 pyyaml
+setuptools
+twine
 yq

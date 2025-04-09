@@ -78,56 +78,6 @@ def main():
         print(get_banner())
         return  # Exit after handling banner
 
-    parser = ArgumentParser(
-        description="PullHero your agentic asistant",
-        formatter_class=ArgumentDefaultsHelpFormatter,
-        epilog="Note: All API requests (for any provider) will use the endpoint '/v1/chat/completions'.",
-    )
-
-    # Specific to the VCS (GitHub OR Gitlab)
-    parser.add_argument(
-        "--vcs-provider",
-        required=not os.environ.get("VCS_PROVIDER"),
-        default=os.environ.get("VCS_PROVIDER"),
-        help="VCS Provider"
-    )
-    parser.add_argument(
-        "--vcs-token",
-        required=not os.environ.get("VCS_TOKEN"),
-        default=os.environ.get("VCS_TOKEN"),
-        help="VCS Token"
-    )
-    parser.add_argument(
-        "--vcs-repository",
-        required=not os.environ.get("VCS_REPOSITORY"),
-        default=os.environ.get("VCS_REPOSITORY"),
-        help="VCS Repository"
-    )
-    parser.add_argument(
-        "--vcs-change-id",
-        required=not os.environ.get("VCS_CHANGE_ID"),
-        default=os.environ.get("VCS_CHANGE_ID"),
-        help="VCS change, this can be the ID of a PR or an issue"
-    )
-    parser.add_argument(
-        "--vcs-change-type",
-        required=not os.environ.get("VCS_CHANGE_TYPE"),
-        default=os.environ.get("VCS_CHANGE_TYPE"),
-        help="VCS change type, this can be the an issue, pr, mr..."
-    )
-    parser.add_argument(
-        "--vcs-base-branch",
-        required=not os.environ.get("VCS_BASE_BRANCH"),
-        default=os.environ.get("VCS_BASE_BRANCH"),
-        help="VCS base branch"
-    )
-    parser.add_argument(
-        "--vcs-head-branch",
-        required=not os.environ.get("VCS_HEAD_BRANCH"),
-        default=os.environ.get("VCS_HEAD_BRANCH"),
-        help="VCS head branch"
-    )
-
     # Specific to PullHero (How to interact with the agents)
     parser.add_argument(
         "--agent",

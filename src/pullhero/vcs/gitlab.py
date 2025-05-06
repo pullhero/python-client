@@ -17,7 +17,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import gitlab
-from typing import Optional, List
+from typing import Optional, List, Dict, Literal
 from pullhero.vcs.base import VCSOperations
 
 

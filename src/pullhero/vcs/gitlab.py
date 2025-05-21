@@ -170,10 +170,6 @@ class GitLabProvider(VCSOperations):
                     },
                 )
 
-                import bpython
-
-                bpython.embed({**globals(), **locals()})
-
                 commits = project.commits.list(ref_name=branch, per_page=1)
                 latest_commit_id = commits[0].id if commits else None
 

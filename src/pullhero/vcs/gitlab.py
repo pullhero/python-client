@@ -17,7 +17,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import gitlab
-from typing import Optional, List
+from typing import Optional, List, Dict, Literal, Tuple
 from pullhero.vcs.base import VCSOperations
 
 
@@ -27,9 +27,12 @@ class GitLabProvider(VCSOperations):
         self.client = gitlab.Gitlab(private_token=self.token)
 
     def create_pr(
-        self, project_id: str, title: str, body: str, base: str, head: str
-    ) -> dict:
-        project = self.client.projects.get(project_id)
+        self, repo_identifier: str, title: str, body: str, base: str, head: str
+    ) -> Dict[str, str]:
+        """
+        Create a new GitLab Merge Request.
+        """
+        project = self.client.projects.get(repo_identifier)
         mr = project.mergerequests.create(
             {
                 "title": title,
@@ -38,60 +41,71 @@ class GitLabProvider(VCSOperations):
                 "target_branch": base,
             }
         )
-        return {"url": mr.web_url, "id": mr.iid}
+        return {"url": mr.web_url, "id": str(mr.iid)}
 
+    def post_comment(
+        self,
+        project_id: str,
+        target_id: str,
+        body: str,
+        target_type: Literal["pr", "issue"] = "pr",
+    ) -> Dict[str, str]:
+        """
+        GitLab implementation to post comments on MRs or Issues.
+        """
+        self.logger.info(
+            f"Posting comment on {target_type.upper()} #{target_id} in {project_id}"
+        )
+        self.logger.debug(f"Comment preview: {body[:50]}...")
 
-def post_comment(
-    self,
-    project_id: str,
-    target_id: str,
-    body: str,
-    target_type: Literal["pr", "issue"] = "pr",
-) -> Dict[str, str]:
-    """
-    GitLab implementation to post comments on MRs or Issues.
-    """
-    self.logger.info(
-        f"Posting comment on {target_type.upper()} #{target_id} in {project_id}"
-    )
-    self.logger.debug(f"Comment preview: {body[:50]}...")
+        try:
+            project = self.client.projects.get(project_id)
 
-    try:
-        project = self.client.projects.get(project_id)
+            if target_type == "pr":
+                target = project.mergerequests.get(target_id)
+            elif target_type == "issue":
+                target = project.issues.get(target_id)
+            else:
+                raise ValueError(f"Invalid target_type: {target_type}")
 
-        if target_type == "pr":
-            target = project.mergerequests.get(target_id)
-        elif target_type == "issue":
-            target = project.issues.get(target_id)
-        else:
-            raise ValueError(f"Invalid target_type: {target_type}")
+            note = target.notes.create({"body": body})
 
-        note = target.notes.create({"body": body})
-
-        self.logger.info(f"Successfully posted comment with ID {note.id}")
-        return {"id": note.id, "url": f"{target.web_url}#note_{note.id}"}
-    except gitlab.exceptions.GitlabError as e:
-        self.logger.error(f"Failed to post comment: {str(e)}")
-        raise
+            self.logger.info(f"Successfully posted comment with ID {note.id}")
+            return {"id": note.id, "url": f"{target.web_url}#note_{note.id}"}
+        except gitlab.exceptions.GitlabError as e:
+            self.logger.error(f"Failed to post comment: {str(e)}")
+            raise
 
     def submit_review(
-        self, project_id: str, mr_iid: int, comment: str, approve: bool = False
-    ) -> dict:
+        self, pr_id: str, comment: str, approve: bool = False
+    ) -> Dict[str, str]:
+        """
+        Submit a review for a GitLab Merge Request, with optional approval.
+        """
+        # In GitLab, we need both project ID and MR IID
+        if ":" not in pr_id:
+            raise ValueError("pr_id must be in format 'project_id:mr_iid'")
+
+        project_id, mr_iid = pr_id.split(":", 1)
+
         project = self.client.projects.get(project_id)
-        mr = project.mergerequests.get(mr_iid)
+        mr = project.mergerequests.get(int(mr_iid))
 
         if approve:
             mr.approve()
 
         note = mr.notes.create({"body": comment})
-        return {"id": note.id, "approved": approve}
+        return {"id": str(note.id), "approved": approve}
 
-    def get_pr_diff(self, project_id: str, mr_iid: int) -> str:
-        """Get the diff for a merge request using GitLab API"""
-        project = self.client.projects.get(project_id)
-        mr = project.mergerequests.get(mr_iid)
+    def get_pr_diff(self, repo_identifier: str, pr_id: str) -> str:
+        """
+        Get the diff for a merge request using GitLab API.
+        """
+        project = self.client.projects.get(repo_identifier)
+        mr = project.mergerequests.get(int(pr_id))
         # GitLab returns diff directly in the MR object
-        return mr.diffs().diff
+        changes = mr.changes()
+        return "".join([change.get("diff", "") for change in changes["changes"]])
 
     def get_current_readme(
         self, project_id: str, branch: str
@@ -103,7 +117,8 @@ def post_comment(
         project = self.client.projects.get(project_id)
         try:
             readme_file = project.files.get(file_path="README.md", ref=branch)
-            return readme_file.decode().decode("utf-8"), readme_file.id
+            # Return readme content and the file path as ID (gitlab doesn't use file_id for updates)
+            return readme_file.decode().decode("utf-8"), "README.md"
         except gitlab.exceptions.GitlabGetError:
             self.logger.info("No existing README.md found.")
             return "", None
@@ -139,28 +154,44 @@ def post_comment(
 
         try:
             readme_content, file_id = self.get_current_readme(project_id, branch)
-            commit_message = "Update README documentation via PullHero"
 
             if file_id:
+                commit_message = "Update README documentation via PullHero"
+                self.logger.debug(
+                    f"Updating README.md with branch: '{branch}', content length: {len(new_content)} chars"
+                )
+
                 result = project.files.update(
                     file_path="README.md",
-                    branch=branch,
-                    content=new_content,
-                    commit_message=commit_message,
-                )
-                self.logger.info("README.md updated on branch '%s'.", branch)
-                return {"status": "updated", "sha": result["commit_id"]}
-            else:
-                result = project.files.create(
-                    {
-                        "file_path": "README.md",
+                    new_data={
                         "branch": branch,
                         "content": new_content,
-                        "commit_message": "Create README documentation via PullHero",
-                    }
+                        "commit_message": commit_message,
+                    },
                 )
+
+                commits = project.commits.list(ref_name=branch, per_page=1)
+                latest_commit_id = commits[0].id if commits else None
+
+                self.logger.info("README.md updated on branch '%s'.", branch)
+                return {"status": "updated", "sha": latest_commit_id}
+            else:
+                commit_message = ("Create README documentation via PullHero",)
+
+                result = project.files.create(
+                    file_path="README.md",
+                    new_data={
+                        "branch": branch,
+                        "content": new_content,
+                        "commit_message": commit_message,
+                    },
+                )
+
+                commits = project.commits.list(ref_name=branch, per_page=1)
+                latest_commit_id = commits[0].id if commits else None
+
                 self.logger.info("README.md created on branch '%s'.", branch)
-                return {"status": "created", "sha": result["commit_id"]}
+                return {"status": "updated", "sha": latest_commit_id}
         except Exception as e:
             self.logger.error("Failed to update README.md: %s", e)
             raise
@@ -252,10 +283,21 @@ def post_comment(
         try:
             project = self.client.projects.get(project_id)
             issue = project.issues.get(issue_number)
-            issue.labels.remove(label)
-            issue.save()
-            self.logger.info(f"Successfully removed label '{label}'")
-            return True
+
+            current_labels = issue.labels
+
+            if label in current_labels:
+                current_labels.remove(label)
+
+                # Update issue with new labels
+                issue.labels = current_labels
+                issue.save()
+
+                self.logger.info(f"Successfully removed label '{label}'")
+                return True
+            else:
+                self.logger.info(f"Label '{label}' not found on issue")
+                return False
         except gitlab.exceptions.GitlabError as e:
             self.logger.error(f"Failed to remove label: {str(e)}")
             return False

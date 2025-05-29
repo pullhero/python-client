@@ -231,7 +231,7 @@ def ingest_repository(local_repo_path: str) -> Tuple[str, str, str]:
 
 
 def call_ai_api(
-    api_host: str, api_key: str, api_model: str, prompt: str, timeout: int = 120
+    api_host: str, api_key: str, api_model: str, prompt: str, timeout: int = 360
 ) -> str:
     """
     Make an API call to an AI service for code review analysis.
@@ -247,7 +247,7 @@ def call_ai_api(
     prompt : str
         The review prompt to send to the AI
     timeout : int, optional
-        Request timeout in seconds (default: 120)
+        Request timeout in seconds (default: 360)
 
     Returns:
     --------
@@ -292,6 +292,7 @@ def call_ai_api(
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
+            "X-Request-Timeout": str(timeout),  # Add gateway timeout header
         }
 
         logger.debug(f"Sending request to {url}")

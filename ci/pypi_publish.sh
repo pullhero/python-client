@@ -47,7 +47,7 @@ done
 #
 
 all_published_versions=$(curl -L https://pypi.python.org/pypi/pullhero/json | jq -r '.releases // {"unreleased":"0.0.0"}' | jq 'keys[]')
-current_pullhero_version=$(cat src/pullhero/__about__.py | grep "__version__ = " | cut -d "'" -f 2)
+current_pullhero_version=$(cat src/pullhero/__about__.py | grep "__version__ = " | cut -d '"' -f 2)
 
 publish="1"
 

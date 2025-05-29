@@ -289,14 +289,26 @@ def call_ai_api(
             "max_tokens": 1000,
             "temperature": 0.7,
         }
+        
+        # Convert timeout to milliseconds for APIcast
+        timeout_ms = timeout * 1000
+        
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
-            "X-Request-Timeout": str(timeout),  # Add gateway timeout header
+            "X-APIcast-Timeout": str(timeout_ms),
+            "X-APIcast-Upstream-Timeout": str(timeout_ms),
+            "X-APIcast-Request-Timeout": str(timeout_ms),
+            "X-Request-Timeout": str(timeout_ms),
+            "Connection": "keep-alive",
+            "Keep-Alive": f"timeout={timeout}"
         }
 
         logger.debug(f"Sending request to {url}")
         logger.debug(f"Payload size: {len(prompt)} characters")
+        prompt_preview = "\n".join(prompt.split("\n")[:20])
+        logger.debug(f"Prompt preview (first 20 lines):\n{prompt_preview}")
+        logger.debug(f"Using timeout settings: {timeout} seconds ({timeout_ms} ms)")
 
         response = requests.post(url, json=payload, headers=headers, timeout=timeout)
         response.raise_for_status()

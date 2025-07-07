@@ -41,6 +41,7 @@ def action_review(
     llm_api_key: str,
     llm_api_host: str,
     llm_api_model: str,
+    llm_api_endpoint: str,
 ) -> None:
     """
     Perform a code review action on a VCS pull/merge request using an LLM-powered agent.
@@ -130,6 +131,7 @@ def action_review(
             llm_api_key=llm_api_key,
             llm_api_host=llm_api_host,
             llm_api_model=llm_api_model,
+            llm_api_endpoint=llm_api_endpoint,
         )
 
         # Determine review vote
@@ -200,6 +202,7 @@ def get_review(
     llm_api_key: str,
     llm_api_host: str,
     llm_api_model: str,
+    llm_api_endpoint: str,
 ) -> str:
     """
     Retrieves an AI-generated code review for a given pull/merge request.
@@ -294,7 +297,7 @@ def get_review(
         logging.debug(f"Prompt generated with {len(prompt.splitlines())} lines")
 
         logging.info(f"Calling AI API ({llm_api_model}) for review generation")
-        review_text = call_ai_api(llm_api_host, llm_api_key, llm_api_model, prompt)
+        review_text = call_ai_api(llm_api_host, llm_api_key, llm_api_model, llm_api_endpoint, prompt)
         logging.info("AI review generation completed successfully")
 
         return review_text

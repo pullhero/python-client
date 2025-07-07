@@ -43,6 +43,7 @@ def action_consult(
     llm_api_key: str,
     llm_api_host: str,
     llm_api_model: str,
+    llm_api_endpoint: str,
 ) -> None:
 
     label_to_parse = "consult"
@@ -95,7 +96,7 @@ def action_consult(
             logging.info(f"Calling AI API ({llm_api_model}) for review generation")
             try:
                 consult_result = call_ai_api(
-                    llm_api_host, llm_api_key, llm_api_model, prompt
+                    llm_api_host, llm_api_key, llm_api_model, llm_api_endpoint, prompt
                 )
                 provider.post_comment(
                     vcs_repository, str(issue["number"]), consult_result, "issue"

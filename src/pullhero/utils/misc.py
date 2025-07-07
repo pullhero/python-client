@@ -231,7 +231,7 @@ def ingest_repository(local_repo_path: str) -> Tuple[str, str, str]:
 
 
 def call_ai_api(
-    api_host: str, api_key: str, api_model: str, prompt: str, timeout: int = 360
+    api_host: str, api_key: str, api_model: str, api_endpoint: str, prompt: str, timeout: int = 360
 ) -> str:
     """
     Make an API call to an AI service for code review analysis.
@@ -282,7 +282,7 @@ def call_ai_api(
             logger.error(error_msg)
             raise ValueError(error_msg)
 
-        url = f"https://{api_host}/v1/chat/completions"
+        url = f"https://{api_host}{api_endpoint}"
         payload = {
             "model": api_model,
             "messages": [{"role": "user", "content": prompt}],

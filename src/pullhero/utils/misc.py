@@ -314,6 +314,7 @@ def call_ai_api(
         response.raise_for_status()
 
         data = response.json()
+        logger.debug(f"Response: {data}")
         result = data["choices"][0]["message"]["content"]
 
         logger.info("AI API call successful")
@@ -325,7 +326,7 @@ def call_ai_api(
         logger.error(
             f"API request failed: {he.response.status_code} - {he.response.text}"
         )
-        raise
+        raise he
     except requests.Timeout:
         logger.error("API request timed out")
         raise

@@ -164,6 +164,11 @@ def main():
         default=os.environ.get("LLM_API_MODEL", "gpt-4o-mini"),
         help="LLM Model, e.g., gpt-4o-mini",
     )
+    parser.add_argument(
+        "--llm-api-endpoint",
+        default=os.environ.get("LLM_API_ENDPOINT", "/v1/chat/completions"),
+        help="LLM API Endpoint, default: /v1/chat/completions",
+    )
 
     args = parser.parse_args()
 
@@ -180,6 +185,7 @@ def main():
         "llm_api_key": args.llm_api_key,
         "llm_api_host": args.llm_api_host,
         "llm_api_model": args.llm_api_model,
+        "llm_api_endpoint": args.llm_api_endpoint,
     }
 
     logging.info(f"PullHero v{__version__}")

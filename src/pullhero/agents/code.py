@@ -44,6 +44,7 @@ def action_code(
     llm_api_key: str,
     llm_api_host: str,
     llm_api_model: str,
+    llm_api_endpoint: str,
 ) -> None:
 
     logging.info(f"Starting code action for {vcs_repository} PR/MR {vcs_change_id}")
@@ -197,7 +198,7 @@ Your entire response must be ONLY the improved code file, with no preamble, expl
             logging.info("Sending prompt to AI API to generate improved code...")
             try:
                 new_content = call_ai_api(
-                    llm_api_host, llm_api_key, llm_api_model, prompt
+                    llm_api_host, llm_api_key, llm_api_model, llm_api_endpoint, prompt
                 )
             except Exception as e:
                 logging.error("AI API call failed: %s", e)

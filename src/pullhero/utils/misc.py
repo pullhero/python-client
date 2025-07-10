@@ -231,7 +231,7 @@ def ingest_repository(local_repo_path: str) -> Tuple[str, str, str]:
 
 
 def call_ai_api(
-    api_host: str, api_key: str, api_model: str, prompt: str, timeout: int = 360
+    api_host: str, api_key: str, api_model: str, api_endpoint: str, prompt: str, timeout: int = 360
 ) -> str:
     """
     Make an API call to an AI service for code review analysis.
@@ -282,7 +282,7 @@ def call_ai_api(
             logger.error(error_msg)
             raise ValueError(error_msg)
 
-        url = f"https://{api_host}/v1/chat/completions"
+        url = f"https://{api_host}{api_endpoint}"
         payload = {
             "model": api_model,
             "messages": [{"role": "user", "content": prompt}],
@@ -314,6 +314,7 @@ def call_ai_api(
         response.raise_for_status()
 
         data = response.json()
+        logger.debug(f"Response: {data}")
         result = data["choices"][0]["message"]["content"]
 
         logger.info("AI API call successful")
@@ -325,7 +326,7 @@ def call_ai_api(
         logger.error(
             f"API request failed: {he.response.status_code} - {he.response.text}"
         )
-        raise
+        raise he
     except requests.Timeout:
         logger.error("API request timed out")
         raise

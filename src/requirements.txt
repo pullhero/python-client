@@ -1,4 +1,4 @@
-gitingest>=0.1.3
+gitingest[server]>=0.1.3
 # GNU GENERAL PUBLIC LICENSE
 # Version 3, 29 June 2007
 #
